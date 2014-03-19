@@ -1,0 +1,170 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function azur_emp_schema() {
+  $schema = array();
+  _azur_emp_employee($schema);
+  _azur_emp_address($schema);
+  return $schema;
+}
+function _azur_emp_employee(&$schema) {
+  $schema['employee'] = array(
+    'description' => 'Employee details',
+    'fields' => array(
+      'eid' => array(
+        'description' => 'Employee ID',
+        'type' => 'serial',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ),
+      'uid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => "User uid.",
+        'unsigned' => TRUE,
+      ),
+      'firstname' => array(
+        'description' => 'Firstname',
+        'type' => 'varchar',
+        'not null' => FALSE,
+        'length' => 64,
+      ),
+      'lastname' => array(
+        'description' => 'Lastname',
+        'type' => 'varchar',
+        'not null' => FALSE,
+        'length' => 64,
+      ),
+      'department' => array(
+        'description' => 'Department',
+        'type' => 'int',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ),
+      'type' => array(
+        'description' => 'Type of an employee',
+        'type' => 'int',
+        'not null' => FALSE,
+        'unsigned' => TRUE,
+      ),
+      'sdate' => array(
+        'description' => 'Start Date',
+       'type' => 'varchar',
+        'length' => 256,
+      ),
+      'edate' => array(
+        'description' => 'End Date',
+        'type' => 'varchar',
+        'length' => 256,
+      ),
+      'qualification' => array(
+      'type' => 'text',
+      'description' => 'Qualification',
+      'not null' => TRUE,
+       'size' => 'medium',
+      ),
+      'enum' => array(
+        'type' => 'varchar',
+        'description' => 'Employee Number',
+        'not null' => FALSE,
+        'length' => 96,
+      ),
+    ),
+    'primary key' => array('eid'),
+    'indexes' => array(
+      'user' => array('uid'),
+    ),
+  );
+}
+
+// Employee Address Table.
+function _azur_emp_address(&$schema) {
+    $schema['address'] = array(
+    'description' => 'Addresses', 
+    'fields' => array(
+      'aid' => array(
+        'description' => 'Primary key',
+        'type' => 'serial',
+        'not null' => TRUE,
+        'unsigned' => TRUE,
+      ),
+      'eid' => array(
+        'type' => 'int',
+        'not null' => TRUE,
+        'description' => "Employee eid.",
+        'unsigned' => TRUE,
+      ),
+     'emp_address' => array(
+       'type' => 'varchar',
+       'not null' => FALSE,
+       'length' => 365,
+       'description' => "Employee Address",
+      ),
+      'pincode' => array(
+        'description' => 'Pincode',
+        'type' => 'varchar',
+        'not null' => FALSE,
+        'length' => 10,
+      ),
+      'city' => array(
+        'description' => 'City',
+        'type' => 'int',
+        'not null' => FALSE,
+        'unsigned' => TRUE,
+      ),
+      'state' => array(
+        'description' => 'State',
+        'type' => 'int',
+        'not null' => FALSE,
+        'unsigned' => TRUE,
+      ),
+      'country' => array(
+        'description' => 'Country',
+        'type' => 'int',
+        'not null' => FALSE,
+        'unsigned' => TRUE,
+      ),
+      
+      'phone' => array(
+        'description' => 'Phone',
+        'type' => 'int',
+        'size' => 'medium',
+      ),
+      
+      'resphone' => array(
+        'description' => 'Residence Phone',
+        'type' => 'int',
+        'size' => 'medium',
+      ),
+      ),
+    'primary key' => array('aid'),
+    'indexes' => array(
+      'employee' => array('eid'),
+    ),
+  );
+}
+function azur_emp_update_1() {
+  db_change_field('employee', 'qualification', 'qualification', array(
+    'type' => 'text',
+    'description' => 'Qualification',
+    'not null' => TRUE,
+    'size' => 'medium',
+  ));
+  db_change_field('employee', 'department', 'department', array(
+    'type' => 'int',
+    'not null' => TRUE,
+    'unsigned' => TRUE,
+  ));
+  
+}
+function azur_emp_update_2() {
+  $add = array(
+    'type' => 'varchar',
+    'not null' => FALSE,
+    'length' => 365,
+    'description' => "Employee Address",
+  );
+  db_add_field('address', 'emp_address', $add);
+}

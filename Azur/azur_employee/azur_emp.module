@@ -1,0 +1,351 @@
+<?php
+define('CONST_PERM_CREATE_EMPLOYEE', 'create employee');
+define('CONST_PERM_EDIT_EMPLOYEE', 'edit employee');
+define('CONST_PERM_ADDRESS', 'create address');
+
+/**
+ * Implements hook_permission().
+ */
+function azur_emp_permission() {
+  return array(
+    CONST_PERM_CREATE_EMPLOYEE => array('title' => t('Create Employee')),
+    CONST_PERM_EDIT_EMPLOYEE => array('title' => t('Edit Employee')),
+  );
+}
+/**
+ * Implements hook_menu().
+ */
+function azur_emp_menu() {
+  $items['azur/employee'] = array(
+    'title' => 'Employee',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('azur_emp_form'),
+    'access arguments' => array(CONST_PERM_CREATE_EMPLOYEE),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['employee/%/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'azur_emp_form',
+      1
+    ),
+    'access arguments' => array(CONST_PERM_EDIT_EMPLOYEE),
+    'type' => MENU_LOCAL_TASK,
+  );
+  $items['employee/address/%'] = array(
+    'title' => 'Address',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'azur_emp_address_form',2),
+    'access arguments' => array(CONST_PERM_ADDRESS),
+    'type' => MENU_NORMAL_ITEM,
+  );
+   return $items;
+}
+/**
+ * hook_form()
+ * Employee Form.
+ */
+function azur_emp_form($form, &$form_state, $eid=0) {
+  global $user;
+  $edit = NULL;
+  if ($eid != 0) {
+    $query = db_select('employee', 'e')->fields('e', array(
+      'firstname',
+      'lastname',
+      'department',
+      'type',
+      'sdate',
+      'status',
+      'qualification',
+      'enum'
+    ));
+    $query->leftJoin('address', 'addr', 'addr.eid = e.eid');
+	 $query->fields('addr', array('aid'));
+    $edit = $query->condition('e.eid', $eid)->execute()->fetchobject();
+  }
+    
+  $form['eid'] = array(
+    '#type' => 'hidden',
+    '#title' => t('Employee ID'),
+    '#value' => isset($edit)? $edit->eid : '',
+  );
+  $form['firstname'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Firstname'),
+    '#default_value' => isset($edit)? $edit->firstname : '',
+    '#maxlength' => '64',
+    '#required' => TRUE,
+  );
+  $form['lastname'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Lastname'),
+    '#default_value' => isset($edit)? $edit->lastname : '',
+    '#maxlength' => '64',
+    '#required' => TRUE,
+  );
+  $form['department'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Department'),
+    '#default_value' => isset($edit)? $edit->department : '',
+     '#required' => TRUE,
+  );
+  $form['type'] = array(
+    '#type' => 'select',
+    '#title' => t('Type of an employee'),
+    '#options' => azur_employee_type(),
+    '#default_value' => isset($edit)? $edit->type : '',
+  );
+  $form['sdate'] = array(
+    '#type' => 'date_popup',
+    '#date_label_position' => 'within',
+    '#title' => t('Start date'),
+    '#default_value' => isset($edit) && !empty($edit->edate) ? date('Y-m-d', $edit->edate) : "",
+    '#date_format' => variable_get('date_format_date_only', 'd/m/Y'),
+    '#required'=>TRUE,
+  );
+  $form['qualification'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Qualification'),
+    '#default_value' => isset($edit)? $edit->qualification : '',
+  );
+  $form['enum'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Employee Number'),
+    '#default_value' => isset($edit)? $edit->enum : '',
+    '#maxlength' => '96',
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#attributes'=>array('class' => array('emp_save')),
+    '#value' => t('Save'),
+  );
+
+  return $form;
+}
+
+/**
+ * Submit function
+ */
+function azur_emp_form_submit($form, &$form_state) {
+  global $user;
+  $fname = $form_state['values']['firstname'];
+  $lname = $form_state['values']['lastname'];
+  $dept = $form_state['values']['department'];
+  $type = $form_state['values']['type'];
+  $sdate = strtotime($form_state['values']['sdate']);
+  $qua = $form_state['values']['qualification'];
+  $enum = $form_state['values']['enum'];
+  $eid = $form_state['values']['eid'];
+  if (!empty($eid)) {
+    $updated = db_update('employee')->fields(array(
+      'firstname' => $fname,
+      'lastname' => $lname,
+      'department' => $dept,
+      'type' => $type,
+      'sdate' => ($sdate),
+      'qualification' => $qua,
+      'enum' => $enum
+    ))->condition('eid', $eid, '=')->execute();
+  }
+  else {
+    $values = array(
+       'firstname' => $fname,
+      'lastname' => $lname,
+      'department' => $dept,
+      'type' => $type,
+      'sdate' => ($sdate),
+      'qualification' => $qua,
+      'enum' => $enum,
+      'uid' => $user->uid,
+    );
+    $eid = db_insert('employee')->fields($values)->execute();
+}
+if (isset($eid)) {
+    drupal_goto("employee/address/$eid");
+  }
+}
+/**
+ * Address Form
+ */
+ function azur_emp_address_form($form, &$form_state, $aid = 0) {
+  $edit = NULL;
+  if (!empty($aid)) {
+    $query = db_select('address', 'addr') -> fields('addr');
+    $query -> condition('aid', $aid);
+    $edit = $query -> execute() -> fetchObject();
+  }
+  $form['aid'] = array(
+    '#type' => 'hidden',
+    '#value' => $aid,
+  );
+  
+  $form['address'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Address'),
+  );
+  
+  $form['address']['phone'] = array(
+    '#type' => 'textfield',
+    '#default_value' => isset($edit)  && isset($edit->phone)? $edit -> phone : '',
+    '#title' => t('Mobile'),
+    '#maxlength' => '16',
+    '#size' => 16,
+    '#element_validate' => array('azur_emp_element_validate_numeric'),
+    '#attributes' => array('class' => array('auto-width')),
+  );
+  
+  $form['address']['resphone'] = array(
+    '#type' => 'textfield',
+    '#default_value' => isset($edit)  && isset($edit->rephone)? $edit -> resphone : '',
+    '#title' => t('Residence No.'),
+    '#maxlength' => '16',
+    '#size' => 16,
+    '#element_validate' => array('azur_emp_element_validate_numeric'),
+    '#attributes' => array('class' => array('auto-width')),
+  );
+
+  $form['address']['pincode'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Pincode'),
+    '#required' => TRUE,
+    '#default_value' => isset($edit)  && isset($edit->pincode)? $edit -> pincode : '',
+    '#element_validate' => array('azur_emp_element_validate_numeric'),
+    '#maxlength' => '10',
+    '#size' => 16,
+    '#attributes' => array('class' => array('auto-width')),
+  );
+  
+  $form['location'] = array(
+    '#type' => 'fieldset',
+    '#title' => t('Loaction.'),
+  );
+  $form['location']['emp_address'] = array(
+   '#type' => 'textarea',
+    '#title' => t('Address'),
+    '#required'=> TRUE,
+    '#default_value' => isset($edit)  && isset($edit->emp_address)? $edit -> emp_address : '',
+    '#attributes' => array('class' => array('auto-width')),
+  );
+  $country_options = azur_get_taxonomy_terms('country_hierarchy', 0, 1);
+  $selected_country = isset($form_state['values']['country']) ? $form_state['values']['country'] : key($country_options);
+  dpm($selected_country);
+  $form['location']['country'] = array(
+    '#type' => 'select',
+    '#title' => t('Country'),
+    '#name' => 'country',
+    '#description' => t('Selet the Country.'),
+    '#options' => $country_options,
+    '#default_value' => $selected_country,
+    '#ajax' => array(
+      'event' => 'change',
+      'callback' => 'location_ajax_generator',
+      'wrapper' => 'country-dropdown'
+    ),
+    '#required' => TRUE
+  );
+  $state_options = azur_get_taxonomy_terms('country_hierarchy', $selected_country, 1);
+  $selected_state = isset($form_state['values']['state']) ? $form_state['values']['state'] : key($state_options);
+  $form['location']['state'] = array(
+    '#type' => 'select',
+    '#title' => t('State'),
+    '#name' => 'state',
+    '#description' => t('Please select the State.'),
+    '#prefix' => '<div id="country-dropdown">',
+    '#suffix' => '</div>',
+    '#required' => TRUE,
+    '#options' => $state_options,
+    '#ajax' => array(
+      'callback' => 'location_ajax_generator',
+      'wrapper' => 'city-dropdown',
+      'event'=> 'change'
+    ),
+  );
+  
+  $city_options = azur_get_taxonomy_terms('country_hierarchy', $selected_state, 1);
+  $selected_city = isset($form_state['values']['city']) ? $form_state['values']['city'] : key($city_options);
+  $form['location']['city'] = array(
+    '#type' => 'select',
+    '#title' => t('City'),
+    '#name' => 'city',
+    '#description' => t('Please select the City.'),
+    '#prefix' => '<div id="city-dropdown">',
+    '#suffix' => '</div>',
+    '#required' => TRUE,
+    '#options' => $city_options,
+    '#ajax' => array(
+      'callback' => 'location_ajax_generator',
+      'wrapper' => 'area-dropdown',
+      'event'=> 'change'
+    ),
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#attributes'=>array('class' => array('emp_save')),
+    '#value' => t('Save'),
+  );
+  return $form;
+}
+function azur_get_taxonomy_terms($var, $parent, $depth) {
+  $vocabs = taxonomy_vocabulary_get_names();
+  $tree = taxonomy_get_tree($vocabs[$var] -> vid, $parent, $depth);
+  foreach ($tree as $value) {
+    $terms[$value -> tid] = $value -> name;
+  }
+  return $terms;
+}
+ 
+ 
+/**
+ * Validate if the entered value is numeric
+ */
+function azur_emp_element_validate_numeric($element, &$form_state, $form) {
+  if (!empty($element['#value']) && !is_numeric($element['#value'])) {
+    form_error($element, t('!title must be numeric.', array('!title' => $element['#title'])));
+  }
+} 
+/**
+ * Implements hook_theme
+ */
+function azur_emp_theme() {
+  return array(
+    'azur_emp_form' => array(
+      'render element' => 'form',
+      'template' => 'azur-emp-form'
+    ),
+  );
+}
+
+//Type of Employees
+function azur_employee_type($typ = '') {
+  static $types;
+  if (!isset($types)) {
+    $types = array(
+      1 => t('Permenant'),
+      2 => t('Contract'),
+    );
+  }
+  if (empty($typ)) {
+    return $types;
+  }
+  elseif (isset($types[$typ])) {
+    return $types[$typ];
+  }
+  else {
+    return t('Invalid Option');
+  }
+}
+
+function location_ajax_generator($form, $form_state) {
+	dpm($form_state);
+	if ($form_state['triggering_element']['#name'] == 'country') {
+    return $form['location']['state'];
+  }
+  else if ($form_state['triggering_element']['#name'] == 'state') {
+    return $form['location']['city'];
+  }
+}
+function azur_emp_address_form_submit($form, &$form_state){
+	dpm($form_state);
+}
