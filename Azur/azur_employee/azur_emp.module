@@ -169,7 +169,7 @@ if (isset($eid)) {
 /**
  * Address Form
  */
- function azur_emp_address_form($form, &$form_state, $aid = 0, $eid =0) {
+ function azur_emp_address_form($form, &$form_state,$eid =0,$aid=0) {
   $edit = NULL;
   if (!empty($aid)) {
     $query = db_select('address', 'addr') -> fields('addr');
@@ -194,6 +194,7 @@ if (isset($eid)) {
     '#type' => 'textfield',
     '#default_value' => isset($edit)  && isset($edit->phone)? $edit -> phone : '',
     '#title' => t('Mobile'),
+    '#required' => TRUE,
     '#maxlength' => '16',
     '#size' => 16,
     '#element_validate' => array('azur_emp_element_validate_numeric'),
@@ -349,6 +350,7 @@ function location_ajax_generator($form, $form_state) {
   }
 }
 function azur_emp_address_form_submit($form, &$form_state){
+	dpm($form_state);
   $eid = $form_state['values']['eid'];	
   $emp_add = $form_state['values']['emp_address'];
   $pincode = $form_state['values']['pincode'];
@@ -382,4 +384,13 @@ function azur_emp_address_form_submit($form, &$form_state){
     );
     $eid = db_insert('address')->fields($values)->execute();
 }
+}
+/**
+ * dcemployee view.
+ */
+function azur_emp_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'azur_emp') . '/views',
+  );
 }
