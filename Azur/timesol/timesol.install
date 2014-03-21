@@ -59,6 +59,12 @@ function _timesol_emp_Timeoff(&$schema) {
         'not null' => TRUE,
          'description' => 'Employee ID',
       ),
+      'flag' => array(
+         'type' => 'int',
+         'not null' => FALSE,
+         'unsigned' => TRUE,
+        'description' => 'Flag',
+		),
       'clkin' => array(
         'type' => 'varchar',
         'length' => 256,
@@ -218,4 +224,13 @@ function _timesol_emp_project(&$schema) {
       'employee' => array('eid'),
     ),
   );
+}
+function timesol_update_1() {
+  $flag = array(
+    'type' => 'int',
+    'not null' => FALSE,
+    'unsigned' => TRUE,
+    'description' => 'Flag' ,
+  );
+  db_add_field('empClkIn', 'flag', $flag);
 }
