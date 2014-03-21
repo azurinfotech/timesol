@@ -89,16 +89,16 @@ function employee_views_data(&$data) {
     'filter' => array('handler' => 'views_handler_filter_string', ),
     'sort' => array('handler' => 'views_handler_sort', ),
   );
-  $data['employee']['department'] = array(
-    'title' => t('Department'),
-    'help' => t('Department'),
-    'field' => array(
-      'handler' => 'views_handler_field',
-      'click sortable' => TRUE,
-    ),
-    'filter' => array('handler' => 'views_handler_filter_numeric', ),
-    'sort' => array('handler' => 'views_handler_sort', ),
-  );
+  // $data['employee']['department'] = array(
+    // 'title' => t('Department'),
+    // 'help' => t('Department'),
+    // 'field' => array(
+      // 'handler' => 'views_handler_field',
+      // 'click sortable' => TRUE,
+    // ),
+    // 'filter' => array('handler' => 'views_handler_filter_numeric', ),
+    // 'sort' => array('handler' => 'views_handler_sort', ),
+  // );
   $data['employee']['qualification'] = array(
     'title' => t('Qualification'),
     'help' => t('qualification'),

@@ -1,0 +1,61 @@
+<?php
+
+/**
+ * Implements hook_schema().
+ */
+function request_schema() {
+	$schema = array();
+	 employee_request($schema);
+	 return $schema;
+}
+
+// User Request table
+function employee_request(&$schema){
+	$schema['request'] = array(
+    'description' => 'The user request table',
+    'fields' => array(
+      'rid' => array(
+      'type' => 'serial',
+        'description' => 'Request ID',
+        ),
+      'eid' => array(
+        'description' => 'Employee id',
+        'type' => 'int',
+        'not null' => TRUE,
+        ),
+      'adid' => array(
+        'description' => 'Admin id',
+        'type' => 'int',
+        'not null' => TRUE,
+        ),
+      'fid' => array(
+        'description' => 'File id',
+        'type' => 'int',
+          'not null' => TRUE,
+        ),
+      'rstatus' => array(
+        'description' => 'The status of the request',
+        'type' => 'int',
+        ),
+      'sdate' => array(
+        'description' => 'start date',
+        'type' => 'varchar',
+        'length' => 256,
+        ),
+      'edate' => array(
+        'description' => 'end date',
+        'type' => 'varchar',
+        'length' => 256,
+        ),
+      'rtype' => array(
+        'description' => 'Request type ',
+        'type' => 'int',
+        'not null' => TRUE,
+       ),
+       ),
+        'primary key' => array('rid'),
+        'indexes' => array(
+      'employee' => array('eid'),
+    ),
+ );
+}
