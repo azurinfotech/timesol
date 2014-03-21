@@ -63,18 +63,20 @@ function timesolution_views_data(&$data){
     'title' => t('ClockIn'),
     'help' => t('Sdate'),
     'field' => array(
-      'handler' => 'views_handler_field_date',
+      'handler' => 'views_handler_field',
       'click sortable' => TRUE,
     ),
+    'filter' =>array('handler' => 'views_handler_filter_date'),
     'sort' => array('handler' => 'views_handler_sort', ),
   );
   $data['empClkIn']['clkout'] = array(
     'title' => t('ClockOut'),
     'help' => t('Sdate'),
     'field' => array(
-      'handler' => 'views_handler_field_date',
+      'handler' => 'views_handler_field',
       'click sortable' => TRUE,
     ),
+    'filter' =>array('handler' => 'views_handler_filter_date'),
     'sort' => array('handler' => 'views_handler_sort', ),
   );
   
