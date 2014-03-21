@@ -131,6 +131,7 @@ function timesol_update_1() {
   );
   db_add_field('empClkIn', 'flag', $flag);
 }
+
 function timesol_update_2() {
   $ot_check = array(
     'type' => 'int',
@@ -140,7 +141,6 @@ function timesol_update_2() {
   );
   db_add_field('empClkIn', 'ot_check', $ot_check);
 }
-
 /**
  * drops price_dr table.
  */
