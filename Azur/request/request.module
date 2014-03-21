@@ -1,6 +1,7 @@
 <?php
 define('CONST_PERM_REQUEST', 'send request');
 define('CONST_PERM_EDIT_REQUEST', 'edit request');
+define('CONST_PERM_ACCESS_ADMINID', 'access admin ID');
 /**
  * Implements hook_permission().
  */
@@ -8,6 +9,7 @@ function request_permission() {
   return array(
     CONST_PERM_REQUEST => array('title' => t('Send Request')),
     CONST_PERM_EDIT_REQUEST => array('title' => t('Edit Request')),
+    CONST_PERM_ACCESS_ADMINID => array('title' => t('Access Admin ID')),
   );
 }
 /**
@@ -30,13 +32,18 @@ function request_permission() {
     'access arguments' => array(CONST_PERM_EDIT_REQUEST),
     'type' => MENU_LOCAL_TASK,
   );
+  $items['adminid/autocomplete'] = array(
+		'page callback' => 'admin_autocomplete',
+		'access arguments' => array(CONST_PERM_ACCESS_ADMINID),
+		'type' => MENU_CALLBACK,
+	);
    return $items;
  }
  
  /**
  * EMPLOYEE REQUEST Form.
  */
-function request_form($form, &$form_state, $eid, $rid=0) {
+function request_form($form, &$form_state, $eid=0, $rid=0) {
   $edit = NULL;
   if ($rid != 0) {
     $query = db_select('request', 'req')->fields('req', array(
@@ -44,9 +51,6 @@ function request_form($form, &$form_state, $eid, $rid=0) {
       'eid',
       'adid',
       'fid',
-      'rstatus',
-      'sdate',
-      'edate',
       'rtype'
     ));
     $query->leftJoin('employee', 'e', 'e.eid = req.eid');
@@ -66,44 +70,29 @@ function request_form($form, &$form_state, $eid, $rid=0) {
   $form['adid'] = array(
     '#type' => 'textfield',
     '#title' => t('Admin Id'),
-    '#default_value' => isset($edit)? $edit->adid : '',
-    '#maxlength' => '15',
     '#required' => TRUE,
+    '#autocomplete_path' => 'adminid/autocomplete',
   );
   $form['fid'] = array(
-    '#type' => 'hidden',
+    '#type' => 'managed_file',
     '#title' => t('File ID'),
-    '#value' => isset($edit)? $edit->fid : '',
+    '#description' => t('Upload a file, allowed extensions: jpg, jpeg, png, gif'),
+    '#upload_validators' => array(
+    'file_validate_extensions' => array('jpg jpeg png gif'),
+    ),
+  '#upload_location' => 'public://docs/',
   );
   $form['rtype'] = array(
     '#type' => 'select',
-    '#title' => t('Type of an request'),
+    '#title' => t('Type of request'),
     '#options' => request_type(),
     '#default_value' => isset($edit)? $edit->rtype : '',
   );
-  $form['sdate'] = array(
-    '#type' => 'date_popup',
-    '#date_label_position' => 'within',
-    '#title' => t('Start date'),
-    '#default_value' => isset($edit) && !empty($edit->sdate) ? date('Y-m-d', $edit->sdate) : "",
-    '#date_format' => variable_get('date_format_date_only', 'd/m/Y'),
-    '#required'=>TRUE,
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#attributes'=>array('class' => array('emp_save')),
+    '#value' => t('Save'),
   );
-  $form['edate'] = array(
-    '#type' => 'date_popup',
-    '#date_label_position' => 'within',
-    '#title' => t('End date'),
-    '#default_value' => isset($edit) && !empty($edit->edate) ? date('Y-m-d', $edit->edate) : "",
-    '#date_format' => variable_get('date_format_date_only', 'd/m/Y'),
-    '#required'=>TRUE,
-  );
-   $form['rstatus'] = array(
-    '#type' => 'select',
-    '#title' => t('Status'),
-    '#default_value' => isset($edit) ? $edit->rstatus : 1,
-    '#options' => request_status(),
-  );
-  
   return $form;
 }
 
@@ -147,4 +136,55 @@ function request_status($sta = '') {
   else {
     return t('Invalid Option');
   }
+}
+function admin_autocomplete($string = '') {
+	$matches = array();
+  $query = db_select('employee', 'e') -> fields('e', array(
+    'firstname',
+    'lastname',
+    'eid'
+  )) -> condition('e.firstname', '%' . db_like($string) . '%', 'LIKE');
+  $res = $query -> execute();
+  foreach ($res as $row) {
+    $matches[$row -> firstname .$row -> lastname . " [Id:$row->eid]"] = check_plain($row -> firstname ." ". $row -> lastname );
+  }
+  return drupal_json_output($matches);
+}
+
+/**
+ * Request Form Submit function.
+ */
+function request_form_submit($form, &$form_state){
+	$rid = $form_state['values']['rid'];
+	if(!isset($form_state['values']['rid'])){
+$file = file_load($form_state['values']['fid']);
+  // Change status to permanent.
+  $file->status = FILE_STATUS_PERMANENT;
+  // Save.
+  $uploaded = file_save($file);
+  if ($uploaded == TRUE) {
+    drupal_set_message(t('The file has been uploaded.'));
+  }
+  else {
+    drupal_set_message(t('The file could not be uploaded. Please contact the site administrator.'), 'error');
+  }
+  $emp = azur_user_return_employee();
+  $values = array(
+  'eid'=> $emp->eid, 
+  'fid' => $form_state['values']['fid'],
+  'sdate' => time(),
+  'rstatus' =>0,
+  'rtype' => $form_state['values']['rtype'],
+  'adid' => autocomplete_get_id_func($form_state['values']['adid']),
+  );
+  $query = db_insert('request')->fields($values)->execute();
+}
+else{
+	$updated = db_update('request')->fields(array(
+   'fid' => $form_state['values']['fid'],
+   'rstatus' =>0,
+   'rtype' => $form_state['values']['rtype'],
+    ))->condition('rid', $rid, '=')->execute();
+}	
+	
 }
