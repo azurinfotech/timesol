@@ -415,3 +415,14 @@ function azur_emp_views_api() {
 	dpm($result);
 	return $result;
   }
+ /*
+ * function to return the Employee from the user
+ */
+ function azur_user_return_employee(){
+ 	global $user;
+	$query = db_select('employee','emp');
+	$query -> fields('emp',array('eid','firstname','lastname'));
+	$query ->condition('uid',$user ->uid,'=');
+	$result = $query ->execute()->fetchObject();
+	return $result;
+ }

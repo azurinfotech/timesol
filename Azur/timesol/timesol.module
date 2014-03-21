@@ -1,0 +1,226 @@
+<?php
+
+/**
+ * Implements hook_menu
+ */
+function timesol_menu() {
+  $items = array();
+  $items['timesol/clockout/%'] = array(
+    'title' => t('Clock Out'),
+    'description' => 'A form to fill the Clock out details',
+    'page callback' => 'drupal_get_form',
+    'access arguments' => array('TRUE'),
+    'page arguments' => array(
+      'timesol_clockout_details_form',
+      2
+    ),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  return $items;
+}
+
+/**
+ * Implements hook_block_info
+ */
+function timesol_block_info() {
+  $block = array();
+  $block['timesol_clockin'] = array(
+    'info' => t('A Block where the users can Clock-in and Clock-out'),
+    'cache' => DRUPAL_NO_CACHE
+  );
+  return $block;
+}
+
+/**
+ * Implements hook_block_view
+ */
+function timesol_block_view($delta = '') {
+  $block = array();
+  switch ($delta) {
+    case 'timesol_clockin' :
+      $employee = azur_user_return_employee();
+      $emp_status = timesol_return_user_status($employee -> eid);
+      $block['subject'] = t('');
+      if (!$emp_status) {
+        $block['content'] = drupal_get_form('timesol_clockin_form');
+      }
+      else {
+        $block['content'] = drupal_get_form('timesol_clockout_form');
+      }
+      break;
+
+    default :
+      break;
+  }
+  return $block;
+}
+
+function timesol_return_user_status($eid) {
+  $query = db_select('empclkin', 'cin');
+  $query -> fields('cin', array('cid'));
+  $query -> condition('eid', $eid, '=');
+  $query -> isNull('clkout');
+  $query -> orderBy('cin.cid', 'DESC');
+  $result = $query -> execute() -> fetchField();
+  if ($result == NULL) {
+    return 0;
+  }
+  else {
+    return 1;
+  }
+}
+
+/**
+ * Implements hook_form. Clock In form
+ */
+function timesol_clockin_form($form, &$form_state) {
+  $employee = azur_user_return_employee();
+  $form['eid'] = array(
+    '#type' => 'hidden',
+    '#value' => $employee -> eid,
+  );
+  $form['heading'] = array(
+    '#type' => 'item',
+    '#markup' => '<div class="block_emp_name"><h4>Welcome back' . $employee -> firstname . '!</h4></div>',
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Clock In'),
+  );
+  return $form;
+}
+
+/**
+ * Implements hook_form_submit. Submit function for the Clock in form
+ */
+function timesol_clockin_form_submit($form, &$form_state) {
+  $values = array(
+    'eid' => $form_state['values']['eid'],
+    'clkin' => time()
+  );
+  $query = db_insert('empclkin') -> fields($values) -> execute();
+}
+
+/**
+ * Implements hook_form
+ *
+ */
+function timesol_clockout_form($form, &$form_state) {
+  $employee = azur_user_return_employee();
+  $squery = db_select('empclkin', 'clk');
+  $squery -> fields('clk', array(
+    'eid',
+    'clkin'
+  ));
+  $squery -> condition('eid', $employee -> eid, '=');
+  $squery -> isNull('clkout');
+  $result = $squery -> execute() -> fetchObject();
+  $form['eid'] = array(
+    '#type' => 'hidden',
+    '#value' => $employee -> eid
+  );
+  $form['details'] = array(
+    '#type' => 'item',
+    '#markup' => '<div class ="block_emp_clkin"><h4>Last Clock In ' . date('H:i a', $result -> clkin) . '</h4></div>'
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Clock Out'),
+  );
+  return $form;
+}
+
+/**
+ * Implement hook_form_submit. Submit function for the clock out form
+ */
+function timesol_clockout_form_submit($form, &$form_state) {
+  drupal_goto('timesol/clockout/' . $form_state['values']['eid']);
+}
+
+/**
+ * Implements hook_form. The form submitting all the details during the clock out.
+ */
+function timesol_clockout_details_form($form, &$form_state, $eid) {
+  $form['eid'] = array(
+    '#type' => 'hidden',
+    '#value' => $eid,
+  );
+  $form['multiple'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('Multiple projects'),
+    '#description' => t('Check this if you were working on multiple projects.'),
+  );
+  //TODO: Support for multiple project submit.
+  /**
+   $form['multiple_projects'] = array(
+   '#type' => 'fieldset',
+   '#title' => t('Project Details'),
+   );
+   $form['multi_projects']['multi_number'] = array(
+   '#type' => 'textfield',
+   '#description' => t('Enter the number of projects that you worked on today'),
+   );
+   $number_items = $form_state['storage']['items'];
+   for ($i = 0; $i < $number_items; $i++) {
+   $form['multi_projects']['project_name_' . $i] = array(
+   '#type' => 'textfield',
+   '#description' => t('Enter the project name'),
+   '#autocomplete_path' => '',
+   );
+   $form['multi_projects']['']
+   }*/
+  $form['project_details'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Project Title'),
+    '#description' => t('Enter your project title'),
+    //  '#autocomplete_path' => ''
+  );
+  $form['new_project'] = array(
+    '#type' => 'checkbox',
+    '#title' => t('New project'),
+    '#description' => t('Check this box if it is new project that you want to create'),
+  );
+  $form['project_create'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Project title'),
+    '#description' => t('Enter the new project title')
+  );
+  $form['submit'] = array(
+    '#type' => 'submit',
+    '#value' => t('Submit'),
+  );
+  return $form;
+}
+
+/**
+ * function to get the vid of a taxonomy vocabulary
+ */
+function taxonomy_vocabulary_get_vid($name) {
+  $vocabs = taxonomy_vocabulary_get_names();
+  return $vocabs[$name] -> vid;
+}
+
+/**
+ * Implements hook_form_submit
+ */
+function timesol_clockout_details_form_submit($form, &$form_state) {
+  dpm($form_state);
+  if ($form_state['values']['new_project'] == 1) {
+    $vid = taxonomy_vocabulary_get_vid('projects');
+    dpm($vid);
+    $term = new stdClass;
+    $term -> vid = $vid;
+    $term -> name = $form_state['values']['project_create'];
+    taxonomy_term_save($term);
+  }
+  $squery = db_select('taxonomy_term_data', 'taxo');
+  $squery -> fields('taxo', array('tid'));
+  $squery -> condition('name', $form_state['values']['project_create'], 'like');
+  $result = $squery -> execute() -> fetchField();
+  dpm($result);
+  $upquery = db_update('empclkin') -> fields(array(
+    'clkout' => time(),
+    'pid' => $result
+  )) -> isNull('clkout') -> condition('eid', $form_state['values']['eid'], '=') -> execute();
+  dpm($upquery);
+}
