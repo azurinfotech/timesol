@@ -102,7 +102,7 @@ function azur_emp_form($form, &$form_state, $eid=0) {
     '#type' => 'date_popup',
     '#date_label_position' => 'within',
     '#title' => t('Start date'),
-    '#default_value' => isset($edit) && !empty($edit->edate) ? date('Y-m-d', $edit->edate) : "",
+    '#default_value' => isset($edit) && !empty($edit->sdate) ? date('Y-m-d', $edit->sdate) : "",
     '#date_format' => variable_get('date_format_date_only', 'd/m/Y'),
     '#required'=>TRUE,
   );
@@ -331,8 +331,10 @@ function azur_employee_type($typ = '') {
   static $types;
   if (!isset($types)) {
     $types = array(
-      1 => t('Permenant'),
-      2 => t('Contract'),
+      1 => t('Permenant Qualified'),
+      2 => t('Permenant Not Qualified'),
+      3 => t('Contract'),
+      4 => t('Part Time'),
     );
   }
   if (empty($typ)) {

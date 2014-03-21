@@ -1,0 +1,150 @@
+<?php
+define('CONST_PERM_REQUEST', 'send request');
+define('CONST_PERM_EDIT_REQUEST', 'edit request');
+/**
+ * Implements hook_permission().
+ */
+function request_permission() {
+  return array(
+    CONST_PERM_REQUEST => array('title' => t('Send Request')),
+    CONST_PERM_EDIT_REQUEST => array('title' => t('Edit Request')),
+  );
+}
+/**
+ * Implements hook_menu().
+ */function request_menu() {
+  $items['send/request'] = array(
+    'title' => 'Request',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array('request_form'),
+    'access arguments' => array(CONST_PERM_REQUEST),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['request/%/edit'] = array(
+    'title' => 'Edit',
+    'page callback' => 'drupal_get_form',
+    'page arguments' => array(
+      'request_form',
+      1
+    ),
+    'access arguments' => array(CONST_PERM_EDIT_REQUEST),
+    'type' => MENU_LOCAL_TASK,
+  );
+   return $items;
+ }
+ 
+ /**
+ * EMPLOYEE REQUEST Form.
+ */
+function request_form($form, &$form_state, $eid, $rid=0) {
+  $edit = NULL;
+  if ($rid != 0) {
+    $query = db_select('request', 'req')->fields('req', array(
+      'rid',
+      'eid',
+      'adid',
+      'fid',
+      'rstatus',
+      'sdate',
+      'edate',
+      'rtype'
+    ));
+    $query->leftJoin('employee', 'e', 'e.eid = req.eid');
+    $edit = $query->condition('req.eid', $eid)->execute()->fetchobject();
+  }
+  
+  $form['rid'] = array(
+    '#type' => 'hidden',
+    '#title' => t('Request ID'),
+    '#value' => isset($edit)? $edit->rid : '',
+  );  
+  $form['eid'] = array(
+    '#type' => 'hidden',
+    '#title' => t('Employee ID'),
+    '#value' => isset($edit)? $edit->eid : '',
+  );
+  $form['adid'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Admin Id'),
+    '#default_value' => isset($edit)? $edit->adid : '',
+    '#maxlength' => '15',
+    '#required' => TRUE,
+  );
+  $form['fid'] = array(
+    '#type' => 'hidden',
+    '#title' => t('File ID'),
+    '#value' => isset($edit)? $edit->fid : '',
+  );
+  $form['rtype'] = array(
+    '#type' => 'select',
+    '#title' => t('Type of an request'),
+    '#options' => request_type(),
+    '#default_value' => isset($edit)? $edit->rtype : '',
+  );
+  $form['sdate'] = array(
+    '#type' => 'date_popup',
+    '#date_label_position' => 'within',
+    '#title' => t('Start date'),
+    '#default_value' => isset($edit) && !empty($edit->sdate) ? date('Y-m-d', $edit->sdate) : "",
+    '#date_format' => variable_get('date_format_date_only', 'd/m/Y'),
+    '#required'=>TRUE,
+  );
+  $form['edate'] = array(
+    '#type' => 'date_popup',
+    '#date_label_position' => 'within',
+    '#title' => t('End date'),
+    '#default_value' => isset($edit) && !empty($edit->edate) ? date('Y-m-d', $edit->edate) : "",
+    '#date_format' => variable_get('date_format_date_only', 'd/m/Y'),
+    '#required'=>TRUE,
+  );
+   $form['rstatus'] = array(
+    '#type' => 'select',
+    '#title' => t('Status'),
+    '#default_value' => isset($edit) ? $edit->rstatus : 1,
+    '#options' => request_status(),
+  );
+  
+  return $form;
+}
+
+//Type of Request
+function request_type($typ = '') {
+  static $types;
+  if (!isset($types)) {
+    $types = array(
+      1 => t('Project'),
+      2 => t('Time'),
+      3 => t('Reimbursement'),
+    );
+  }
+  if (empty($typ)) {
+    return $types;
+  }
+  elseif (isset($types[$typ])) {
+    return $types[$typ];
+  }
+  else {
+    return t('Invalid Option');
+  }
+}
+/**
+ * employee status
+ */
+function request_status($sta = '') {
+  static $stat;
+  if (!isset($stat)) {
+    $stat = array(
+      1 => t('Approved'),
+      2 => t('Pending'),
+    );
+  }
+  if (empty($sta)) {
+    return $stat;
+  }
+  elseif (isset($stat[$sta])) {
+    return $stat[$sta];
+  }
+  else {
+    return t('Invalid Option');
+  }
+}
