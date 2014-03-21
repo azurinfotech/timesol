@@ -7,9 +7,7 @@ function timesol_schema() {
   $schema = array();
   _timesol_emp_Timeoff($schema);
   _timesol_emp_ClockIn($schema);
-  _timesol_emp_request($schema);
   _timesol_emp_Overtime($schema);
-  _timesol_emp_project($schema);
   return $schema;
 }
 function _timesol_emp_Timeoff(&$schema) {
@@ -90,56 +88,7 @@ function _timesol_emp_Timeoff(&$schema) {
   );
 }
 
-// User Request table
-function _timesol_emp_request(&$schema){
-	$schema['request'] = array(
-    'description' => 'The user request table',
-    'fields' => array(
-      'rid' => array(
-      'type' => 'serial',
-        'description' => 'Request ID',
-        ),
-      'eid' => array(
-        'description' => 'Employee id',
-        'type' => 'int',
-        'not null' => TRUE,
-        ),
-      'adid' => array(
-        'description' => 'Admin id',
-        'type' => 'int',
-        'not null' => TRUE,
-        ),
-      'fid' => array(
-        'description' => 'File id',
-        'type' => 'int',
-          'not null' => TRUE,
-        ),
-      'rstatus' => array(
-        'description' => 'The status of the request',
-        'type' => 'int',
-        ),
-      'sdate' => array(
-        'description' => 'start date',
-        'type' => 'varchar',
-        'length' => 256,
-        ),
-      'edate' => array(
-        'description' => 'end date',
-        'type' => 'varchar',
-        'length' => 256,
-        ),
-      'rtype' => array(
-        'description' => 'Request type ',
-        'type' => 'int',
-        'not null' => TRUE,
-       ),
-       ),
-        'primary key' => array('rid'),
-        'indexes' => array(
-      'employee' => array('eid'),
-    ),
- );
-}
+
 //Functions for Employee OverTime
 function _timesol_emp_Overtime(&$schema) {
   $schema['empOvertime'] = array(
@@ -173,58 +122,6 @@ function _timesol_emp_Overtime(&$schema) {
   );
  
 }
-//Functions for Employee Project
-function _timesol_emp_project(&$schema) {
-  $schema['project'] = array(
-    'description' => 'User Over Time',
-    'fields' => array(
-      'pid' => array(
-        'type' => 'serial',
-        'description' => 'Project ID',
-      ),
-      'eid' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-         'description' => 'Employee ID',
-      ),
-      'powner' => array(
-        'type' => 'varchar',
-        'length' => 256,
-        'description' => 'Project Owners name',
-      ),
-      'pname' => array(
-        'type' => 'varchar',
-        'length' => 256,
-        'description' => 'Project name',
-      ),
-      'sdate' => array(
-        'description' => 'Start Date',
-       'type' => 'varchar',
-        'length' => 256,
-      ),
-      'edate' => array(
-        'description' => 'End Date',
-        'type' => 'varchar',
-        'length' => 256,
-      ),
-      'pcomp_date' => array(
-        'description' => 'Project completion Date',
-        'type' => 'varchar',
-        'length' => 256,
-      ),
-       'status' => array(
-        'description' => 'Status',
-        'type' => 'int',
-        'not null' => FALSE,
-        'unsigned' => TRUE,
-      ),
-    ),
-    'primary key' => array('pid'),
-    'indexes' => array(
-      'employee' => array('eid'),
-    ),
-  );
-}
 function timesol_update_1() {
   $flag = array(
     'type' => 'int',
@@ -233,4 +130,18 @@ function timesol_update_1() {
     'description' => 'Flag' ,
   );
   db_add_field('empClkIn', 'flag', $flag);
+}
+/**
+ * drops price_dr table.
+ */
+function timesol_update_2() {
+  if (db_table_exists('project')) {
+	 db_drop_table('project');
+  }
+  if (db_table_exists('request')) {
+	 db_drop_table('request');
+  }
+}
+function timesol_update_4() {
+  db_drop_field('empClkIn', 'pid');
 }

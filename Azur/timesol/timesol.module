@@ -204,10 +204,8 @@ function taxonomy_vocabulary_get_vid($name) {
  * Implements hook_form_submit
  */
 function timesol_clockout_details_form_submit($form, &$form_state) {
-  dpm($form_state);
   if ($form_state['values']['new_project'] == 1) {
     $vid = taxonomy_vocabulary_get_vid('projects');
-    dpm($vid);
     $term = new stdClass;
     $term -> vid = $vid;
     $term -> name = $form_state['values']['project_create'];
@@ -217,10 +215,17 @@ function timesol_clockout_details_form_submit($form, &$form_state) {
   $squery -> fields('taxo', array('tid'));
   $squery -> condition('name', $form_state['values']['project_create'], 'like');
   $result = $squery -> execute() -> fetchField();
-  dpm($result);
   $upquery = db_update('empclkin') -> fields(array(
     'clkout' => time(),
     'pid' => $result
   )) -> isNull('clkout') -> condition('eid', $form_state['values']['eid'], '=') -> execute();
-  dpm($upquery);
+}
+/**
+ * hook_views_api for views module.
+ */
+function timesol_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'timesol') . '/views',
+  );
 }

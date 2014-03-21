@@ -1,0 +1,4 @@
+name = Azur Employee Requests 
+description = Provides all functionality about a Employee Requests
+core = 7.x
+package = Azur
