@@ -206,7 +206,6 @@ function timesol_clockout_details_form($form, &$form_state, $eid) {
       '#description' => t('Enter the number of hours that you worked on this project'),
       '#default_value' => '',
       '#date_format' => variable_get('date_format_date_only', 'H:i'),
-      '#required' => TRUE,
     );
   }
   $form['single_project'] = array(
@@ -250,31 +249,8 @@ function taxonomy_vocabulary_get_vid($name) {
  * Implements hook_form_submit
  */
 function timesol_clockout_details_form_submit($form, &$form_state) {
-  if ($form_state['values']['new_project'] == 1) {
-    $vid = taxonomy_vocabulary_get_vid('projects');
-    $term = new stdClass;
-    $term -> vid = $vid;
-    $term -> name = $form_state['values']['project_create'];
-    taxonomy_term_save($term);
-  }
-  $squery = db_select('taxonomy_term_data', 'taxo');
-  $squery -> fields('taxo', array('tid'));
-  $squery -> condition('name', $form_state['values']['project_create'], 'like');
-  $result = $squery -> execute() -> fetchField();
-  $upquery = db_update('empclkin') -> fields(array(
-    'clkout' => time(),
-    'pid' => $result
-  )) -> isNull('clkout') -> condition('eid', $form_state['values']['eid'], '=') -> execute();
-}
-/**
- * hook_views_api for views module.
- */
-function timesol_views_api() {
-  return array(
-    'api' => 3,
-    'path' => drupal_get_path('module', 'timesol') . '/views',
-  );
   if ($form_state['values']['multiple'] == 0) {
+  	$pid=0;
     if ($form_state['values']['new_project'] == 1) {
       $vid = taxonomy_vocabulary_get_vid('projects');
       $term = new stdClass;
@@ -292,14 +268,15 @@ function timesol_views_api() {
     }
     $upquery = db_update('empclkin') -> fields(array(
       'clkout' => time(),
-      'pid' => $result
+      'pid' => $pid
     )) -> isNull('clkout') -> condition('eid', $form_state['values']['eid'], '=') -> execute();
   }
   else {
+  	dpm($form_state);
     $values = array();
     $clkin = 0;
     $flag = 0;
-    for ($i = 0; $i < $form_state['values']['multi_number']; $i++) {
+    for ($i = 0; $i < $form_state['input']['multi']; $i++) {
       if ($form_state['values']['new_project_' . $i] == 1) {
         $vid = taxonomy_vocabulary_get_vid('projects');
         $term = new stdClass;
@@ -308,32 +285,33 @@ function timesol_views_api() {
         taxonomy_term_save($term);
         $squery = db_select('taxonomy_term_data', 'taxo');
         $squery -> fields('taxo', array('tid'));
-        $squery -> condition('name', $form_state['values']['project_create' . $i], 'like');
+        $squery -> condition('name', $form_state['values']['project_create_' . $i], 'like');
         $result = $squery -> execute() -> fetchField();
         $values[$i] = array('tid' => $result);
       }
       else {
         $values[$i] = array('tid' => autocomplete_get_id_func($form_state['values']['project_name_' . $i]));
       }
-      $values[$i]['clkout'] = $form_state['values']['project_time_' . $i];
+      $values[$i]['clkout'] = $form_state['input']['project_time_' . $i]['time'];
     }
-    for ($i = 0; $i < $form_state['values']['multi_number']; $i++) {
+		dpm($values);
+    for ($i = 0; $i < $form_state['input']['multi']; $i++) {
       if ($i == 0) {
         $empclkin = timesol_return_clockin_time_status($form_state['values']['eid']);
         $flag = $empclkin -> flag;
-        $clkin = $empclkin -> clkin + timesol_convert_h_to_s($values[$i]['clkin']);
+        $clkin = $empclkin -> clkin + timesol_convert_h_to_s($values[$i]['clkout']);
         $upquery = db_update('empclkin');
         $upquery -> fields(array(
           'clkout' => $clkin,
-          'pid' => $value[$i]['tid']
+          'pid' => $values[$i]['tid']
         ));
-        $upquery -> condition('eid', $form_state['values']['eid'], '=') -> isNull('clkin');
+        $upquery -> condition('eid', $form_state['values']['eid'], '=') -> isNull('clkout')->execute();
       }
       else {
-        $clkout = $clkin + timesol_convert_h_to_s($values[$i]['clkin']);
+        $clkout = $clkin + timesol_convert_h_to_s($values[$i]['clkout']);
         $inquery = db_insert('empclkin') -> fields(array(
           'eid' => $form_state['values']['eid'],
-          'cllkin' => $clkin,
+          'clkin' => $clkin,
           'clkout' => $clkout,
           'flag' => $flag,
           'pid' => $values[$i]['tid']
@@ -394,6 +372,8 @@ function timesol_return_clockin_time_status($eid) {
  */
 function timesol_convert_h_to_s($time) {
   $hours = explode(':', $time);
+	dpm($time);
+	dpm($hours);
   $seconds = $hours[0] * 3600 + $hours[1] * 60;
   return $seconds;
 }
@@ -423,4 +403,11 @@ function timesol_cron() {
       }
     }
   }
+}
+
+function timesol_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'timesol') . '/views',
+  );
 }
