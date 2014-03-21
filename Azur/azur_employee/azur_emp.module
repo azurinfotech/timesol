@@ -415,7 +415,7 @@ function azur_emp_views_api() {
 	dpm($result);
 	return $result;
   }
- /*
+ /**
  * function to return the Employee from the user
  */
  function azur_user_return_employee(){
