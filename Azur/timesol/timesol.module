@@ -314,7 +314,7 @@ function timesol_clockout_details_form_submit($form, &$form_state) {
           'flag' => $flag,
           'pid' => $values[$i]['tid']
         )) -> execute();
-				$clkin = $clkout;
+        $clkin = $clkout;
       }
     }
   }
@@ -372,4 +372,31 @@ function timesol_convert_h_to_s($time) {
   $hours = explode(':', $time);
   $seconds = $hours[0] * 3600 + $hours[1] * 60;
   return $seconds;
+}
+
+/**
+ * Implements hook_cron
+ */
+function timesol_cron() {
+  $flagged = array();
+  $squery = db_select('empclkin', 'clk');
+  $squery -> fields('clk', array(
+    'cid',
+    'eid',
+    'clkin',
+    'clkout',
+    'flag',
+    'ot_check'
+  ));
+  $squery -> isNull('clkout');
+  $squery -> isNull('ot_check');
+  $result = $squery -> execute();
+  foreach ($result as $row) {
+    if (is_null($row -> clkout)) {
+      $time = time();
+      if (($time - $row -> clkin % 3600) > 20) {
+        db_update('empclkin') -> fields(array('flag' => 1)) -> condition('cid', $row -> cid, '=') -> execute();
+      }
+    }
+  }
 }

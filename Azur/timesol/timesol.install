@@ -234,3 +234,12 @@ function timesol_update_1() {
   );
   db_add_field('empClkIn', 'flag', $flag);
 }
+function timesol_update_2() {
+  $ot_check = array(
+    'type' => 'int',
+    'not null' => FALSE,
+    'unsigned' => TRUE,
+    'description' => 'Check for over time in the week.' ,
+  );
+  db_add_field('empClkIn', 'ot_check', $ot_check);
+}
