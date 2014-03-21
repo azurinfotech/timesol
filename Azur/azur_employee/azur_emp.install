@@ -37,10 +37,10 @@ function _azur_emp_employee(&$schema) {
         'not null' => FALSE,
         'length' => 64,
       ),
-      'department' => array(
-        'description' => 'Department',
+      'mgr_id' => array(
+        'description' => 'Manager ID',
         'type' => 'int',
-        'not null' => TRUE,
+        'not null' => FALSE,
         'unsigned' => TRUE,
       ),
       'type' => array(
@@ -167,4 +167,13 @@ function azur_emp_update_2() {
     'description' => "Employee Address",
   );
   db_add_field('address', 'emp_address', $add);
+}
+function azur_emp_update_4() {
+  db_change_field('employee', 'department', 'mgr_id', array(
+    'type' => 'int',
+    'description' => 'Manager ID',
+    'not null' => FALSE,
+    'unsigned' => TRUE,
+  ));
+  
 }

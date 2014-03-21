@@ -2,3 +2,5 @@ name = Azur Employee
 description = Provides all functionality about a Employee
 core = 7.x
 package = Azur
+files[] = views/views_handler_field_azur_static.inc
+files[] = views/views_handler_field_country_taxonomy.inc

@@ -16,7 +16,7 @@ function azur_emp_permission() {
  * Implements hook_menu().
  */
 function azur_emp_menu() {
-  $items['azur/employee'] = array(
+  $items['add/employee'] = array(
     'title' => 'Employee',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('azur_emp_form'),
@@ -86,10 +86,11 @@ function azur_emp_form($form, &$form_state, $eid=0) {
     '#required' => TRUE,
   );
   $form['department'] = array(
-    '#type' => 'textfield',
+    '#type' => 'select',
     '#title' => t('Department'),
+    '#options' => departments_og(),
     '#default_value' => isset($edit)? $edit->department : '',
-     '#required' => TRUE,
+    '#required' => TRUE,
   );
   $form['type'] = array(
     '#type' => 'select',
@@ -126,13 +127,13 @@ function azur_emp_form($form, &$form_state, $eid=0) {
 }
 
 /**
- * Submit function
+ * Employee Submit function
  */
 function azur_emp_form_submit($form, &$form_state) {
   global $user;
   $fname = $form_state['values']['firstname'];
   $lname = $form_state['values']['lastname'];
-  $dept = $form_state['values']['department'];
+  //$dept = $form_state['values']['department'];
   $type = $form_state['values']['type'];
   $sdate = strtotime($form_state['values']['sdate']);
   $qua = $form_state['values']['qualification'];
@@ -291,6 +292,10 @@ if (isset($eid)) {
   );
   return $form;
 }
+
+/**
+ * Country Hierarchy Taxonomy
+ */
 function azur_get_taxonomy_terms($var, $parent, $depth) {
   $vocabs = taxonomy_vocabulary_get_names();
   $tree = taxonomy_get_tree($vocabs[$var] -> vid, $parent, $depth);
@@ -340,7 +345,9 @@ function azur_employee_type($typ = '') {
     return t('Invalid Option');
   }
 }
-
+/**
+ * Country Taxonomy Ajax function.
+ */
 function location_ajax_generator($form, $form_state) {
 	if ($form_state['triggering_element']['#name'] == 'country') {
     return $form['location']['state'];
@@ -349,8 +356,11 @@ function location_ajax_generator($form, $form_state) {
     return $form['location']['city'];
   }
 }
+
+/**
+ * Address Form Submit function.
+ */
 function azur_emp_address_form_submit($form, &$form_state){
-	dpm($form_state);
   $eid = $form_state['values']['eid'];	
   $emp_add = $form_state['values']['emp_address'];
   $pincode = $form_state['values']['pincode'];
@@ -386,7 +396,7 @@ function azur_emp_address_form_submit($form, &$form_state){
 }
 }
 /**
- * dcemployee view.
+ * hook_views_api for views module.
  */
 function azur_emp_views_api() {
   return array(
@@ -394,3 +404,14 @@ function azur_emp_views_api() {
     'path' => drupal_get_path('module', 'azur_emp') . '/views',
   );
 }
+
+/**
+ * Organic group function for departments
+ */
+ function departments_og(){
+    $squery = db_select('og_membership', 'og');
+	$squery->fields('og', array('etid','gid'));
+    $result = $squery->co->execute()->fetchAllKeyed();
+	dpm($result);
+	return $result;
+  }
