@@ -54,7 +54,7 @@ function azur_emp_form($form, &$form_state, $eid=0) {
     $query = db_select('employee', 'e')->fields('e', array(
       'firstname',
       'lastname',
-      'department',
+     // 'department',
       'type',
       'sdate',
       'status',
@@ -85,13 +85,13 @@ function azur_emp_form($form, &$form_state, $eid=0) {
     '#maxlength' => '64',
     '#required' => TRUE,
   );
-  $form['department'] = array(
-    '#type' => 'select',
-    '#title' => t('Department'),
-    '#options' => departments_og(),
-    '#default_value' => isset($edit)? $edit->department : '',
-    '#required' => TRUE,
-  );
+  // $form['department'] = array(
+    // '#type' => 'select',
+    // '#title' => t('Department'),
+    // '#options' => departments_og(),
+    // '#default_value' => isset($edit)? $edit->department : '',
+    // '#required' => TRUE,
+  // );
   $form['type'] = array(
     '#type' => 'select',
     '#title' => t('Type of an employee'),
@@ -143,7 +143,7 @@ function azur_emp_form_submit($form, &$form_state) {
     $updated = db_update('employee')->fields(array(
       'firstname' => $fname,
       'lastname' => $lname,
-      'department' => $dept,
+     // 'department' => $dept,
       'type' => $type,
       'sdate' => ($sdate),
       'qualification' => $qua,
@@ -154,7 +154,7 @@ function azur_emp_form_submit($form, &$form_state) {
     $values = array(
        'firstname' => $fname,
       'lastname' => $lname,
-      'department' => $dept,
+     // 'department' => $dept,
       'type' => $type,
       'sdate' => ($sdate),
       'qualification' => $qua,
