@@ -1,0 +1,4 @@
+name = AzurBlocks
+description = "Carusol"
+package = Azur
+core = 7.x
