@@ -188,3 +188,14 @@ else{
 }	
 	
 }
+/**
+ * Implements hook_theme
+ */
+function request_theme() {
+  return array(
+    'request_form' => array(
+      'render element' => 'form',
+      'template' => 'request-form'
+    ),
+  );
+}
