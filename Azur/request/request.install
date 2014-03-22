@@ -47,6 +47,12 @@ function employee_request(&$schema){
         'type' => 'varchar',
         'length' => 256,
         ),
+        'desc' => array(
+        'type' => 'text',
+        'not null' => FALSE,
+        'size' => 'medium',
+        'description' => "Request description",
+		),
       'rtype' => array(
         'description' => 'Request type ',
         'type' => 'int',
@@ -58,4 +64,13 @@ function employee_request(&$schema){
       'employee' => array('eid'),
     ),
  );
+}
+function request_update_1() {
+  $desc = array(
+     'type' => 'text',
+    'not null' => FALSE,
+    'size' => 'medium',
+    'description' => "Request description",
+  );
+  db_add_field('request', 'desc', $desc);
 }

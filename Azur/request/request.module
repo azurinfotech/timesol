@@ -203,3 +203,13 @@ function request_theme() {
       'template' => 'request-form'
     ), );
 }
+
+/**
+ * hook_views_api for views module.
+ */
+function request_views_api() {
+  return array(
+    'api' => 3,
+    'path' => drupal_get_path('module', 'request') . '/views',
+  );
+}
