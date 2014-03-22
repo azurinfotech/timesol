@@ -181,11 +181,11 @@ function timesol_clockout_details_form($form, &$form_state, $eid) {
   );
   $num_items = !empty($form_state['input']['multi']) ? $form_state['input']['multi'] : 2;
   for ($i = 0; $i < $num_items; $i++) {
-    $form['multi_projects']['new_project_' . $i] = array(
-      '#type' => 'checkbox',
-      '#title' => t('New project'),
-      '#description' => t('Check this box if it is new project that you want to create'),
-    );
+    // $form['multi_projects']['new_project_' . $i] = array(
+    // '#type' => 'checkbox',
+    // '#title' => t('New project'),
+    // '#description' => t('Check this box if it is new project that you want to create'),
+    // );
     $form['multi_projects']['project_name_' . $i] = array(
       '#type' => 'textfield',
       '#title' => t('Title'),
@@ -193,12 +193,12 @@ function timesol_clockout_details_form($form, &$form_state, $eid) {
       '#autocomplete_path' => 'timesol/project',
       '#states' => array('visible' => array(':input[name="new_project_' . $i . '"]' => array('checked' => FALSE)))
     );
-    $form['multi_projects']['project_create_' . $i] = array(
-      '#type' => 'textfield',
-      '#title' => t('Project title'),
-      '#description' => t('Enter the new project title'),
-      '#states' => array('visible' => array(':input[name="new_project_' . $i . '"]' => array('checked' => TRUE)))
-    );
+    // $form['multi_projects']['project_create_' . $i] = array(
+    // '#type' => 'textfield',
+    // '#title' => t('Project title'),
+    // '#description' => t('Enter the new project title'),
+    // '#states' => array('visible' => array(':input[name="new_project_' . $i . '"]' => array('checked' => TRUE)))
+    // );
     $form['multi_projects']['project_time_' . $i] = array(
       '#type' => 'date_popup',
       '#date_label_position' => 'within',
@@ -219,17 +219,17 @@ function timesol_clockout_details_form($form, &$form_state, $eid) {
     '#description' => t('Enter your project title'),
     '#autocomplete_path' => 'timesol/project'
   );
-  $form['single_project']['new_project'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('New project'),
-    '#description' => t('Check this box if it is new project that you want to create'),
-  );
-  $form['single_project']['project_create'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Project title'),
-    '#description' => t('Enter the new project title'),
-    '#states' => array('visible' => array(':input[name="new_project"]' => array('checked' => TRUE))),
-  );
+  // $form['single_project']['new_project'] = array(
+  // '#type' => 'checkbox',
+  // '#title' => t('New project'),
+  // '#description' => t('Check this box if it is new project that you want to create'),
+  // );
+  // $form['single_project']['project_create'] = array(
+  // '#type' => 'textfield',
+  // '#title' => t('Project title'),
+  // '#description' => t('Enter the new project title'),
+  // '#states' => array('visible' => array(':input[name="new_project"]' => array('checked' => TRUE))),
+  // );
   $form['submit'] = array(
     '#type' => 'submit',
     '#value' => t('Submit'),
@@ -250,51 +250,47 @@ function taxonomy_vocabulary_get_vid($name) {
  */
 function timesol_clockout_details_form_submit($form, &$form_state) {
   if ($form_state['values']['multiple'] == 0) {
-  	$pid=0;
-    if ($form_state['values']['new_project'] == 1) {
-      $vid = taxonomy_vocabulary_get_vid('projects');
-      $term = new stdClass;
-      $term -> vid = $vid;
-      $term -> name = $form_state['values']['project_create'];
-      taxonomy_term_save($term);
-      $squery = db_select('taxonomy_term_data', 'taxo');
-      $squery -> fields('taxo', array('tid'));
-      $squery -> condition('name', $form_state['values']['project_create'], 'like');
-      $result = $squery -> execute() -> fetchField();
-      $pid = $result;
-    }
-    else {
-      $pid = autocomplete_get_id_func($form_state['values']['project_details']);
-    }
+    $pid = 0;
+    // if ($form_state['values']['new_project'] == 1) {
+    // $vid = taxonomy_vocabulary_get_vid('projects');
+    // $term = new stdClass;
+    // $term -> vid = $vid;
+    // $term -> name = $form_state['values']['project_create'];
+    // taxonomy_term_save($term);
+    // $squery = db_select('taxonomy_term_data', 'taxo');
+    // $squery -> fields('taxo', array('tid'));
+    // $squery -> condition('name', $form_state['values']['project_create'], 'like');
+    // $result = $squery -> execute() -> fetchField();
+    // $pid = $result;
+    // }
+    $pid = autocomplete_get_id_func($form_state['values']['project_details']);
     $upquery = db_update('empclkin') -> fields(array(
       'clkout' => time(),
       'pid' => $pid
     )) -> isNull('clkout') -> condition('eid', $form_state['values']['eid'], '=') -> execute();
   }
   else {
-  	dpm($form_state);
     $values = array();
     $clkin = 0;
     $flag = 0;
     for ($i = 0; $i < $form_state['input']['multi']; $i++) {
-      if ($form_state['values']['new_project_' . $i] == 1) {
-        $vid = taxonomy_vocabulary_get_vid('projects');
-        $term = new stdClass;
-        $term -> vid = $vid;
-        $term -> name = $form_state['values']['project_create_' . $i];
-        taxonomy_term_save($term);
-        $squery = db_select('taxonomy_term_data', 'taxo');
-        $squery -> fields('taxo', array('tid'));
-        $squery -> condition('name', $form_state['values']['project_create_' . $i], 'like');
-        $result = $squery -> execute() -> fetchField();
-        $values[$i] = array('tid' => $result);
-      }
-      else {
-        $values[$i] = array('tid' => autocomplete_get_id_func($form_state['values']['project_name_' . $i]));
-      }
+      // if ($form_state['values']['new_project_' . $i] == 1) {
+      // $vid = taxonomy_vocabulary_get_vid('projects');
+      // $term = new stdClass;
+      // $term -> vid = $vid;
+      // $term -> name = $form_state['values']['project_create_' . $i];
+      // taxonomy_term_save($term);
+      // $squery = db_select('taxonomy_term_data', 'taxo');
+      // $squery -> fields('taxo', array('tid'));
+      // $squery -> condition('name', $form_state['values']['project_create_' . $i], 'like');
+      // $result = $squery -> execute() -> fetchField();
+      // $values[$i] = array('tid' => $result);
+      // }
+      // else {
+      $values[$i] = array('tid' => autocomplete_get_id_func($form_state['values']['project_name_' . $i]));
+      // }
       $values[$i]['clkout'] = $form_state['input']['project_time_' . $i]['time'];
     }
-		dpm($values);
     for ($i = 0; $i < $form_state['input']['multi']; $i++) {
       if ($i == 0) {
         $empclkin = timesol_return_clockin_time_status($form_state['values']['eid']);
@@ -305,7 +301,7 @@ function timesol_clockout_details_form_submit($form, &$form_state) {
           'clkout' => $clkin,
           'pid' => $values[$i]['tid']
         ));
-        $upquery -> condition('eid', $form_state['values']['eid'], '=') -> isNull('clkout')->execute();
+        $upquery -> condition('eid', $form_state['values']['eid'], '=') -> isNull('clkout') -> execute();
       }
       else {
         $clkout = $clkin + timesol_convert_h_to_s($values[$i]['clkout']);
@@ -372,8 +368,6 @@ function timesol_return_clockin_time_status($eid) {
  */
 function timesol_convert_h_to_s($time) {
   $hours = explode(':', $time);
-	dpm($time);
-	dpm($hours);
   $seconds = $hours[0] * 3600 + $hours[1] * 60;
   return $seconds;
 }
@@ -393,7 +387,6 @@ function timesol_cron() {
     'ot_check'
   ));
   $squery -> isNull('clkout');
-  $squery -> isNull('ot_check');
   $result = $squery -> execute();
   foreach ($result as $row) {
     if (is_null($row -> clkout)) {
