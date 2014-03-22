@@ -378,6 +378,7 @@ function timesol_convert_h_to_s($time) {
 function timesol_cron() {
   $flagged = array();
   $squery = db_select('empclkin', 'clk');
+  $squery -> innerJoin('employee', 'e', 'e.eid = clk.eid');
   $squery -> fields('clk', array(
     'cid',
     'eid',
@@ -386,6 +387,7 @@ function timesol_cron() {
     'flag',
     'ot_check'
   ));
+  $squery -> fields('e', array('mgr_id'));
   $squery -> isNull('clkout');
   $result = $squery -> execute();
   foreach ($result as $row) {
@@ -393,6 +395,14 @@ function timesol_cron() {
       $time = time();
       if (($time - $row -> clkin % 3600) > 20) {
         db_update('empclkin') -> fields(array('flag' => 1)) -> condition('cid', $row -> cid, '=') -> execute();
+        $inquery = db_insert('request') -> fields(array(
+          'eid' => $row -> eid,
+          'fid' => NULL,
+          'sdate' => time(),
+          'rstatus' => 0,
+          'rtype' => 2,
+          'adid' => $row -> mgr_id,
+        ));
       }
     }
   }
