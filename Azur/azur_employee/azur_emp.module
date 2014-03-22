@@ -325,7 +325,7 @@ function azur_emp_theme() {
     ),
     'azur_emp_address_form' => array(
       'render element' => 'form',
-      'template' => 'azur-emp-form'
+      'template' => 'azur-emp-address-form'
     ),
   );
 }
