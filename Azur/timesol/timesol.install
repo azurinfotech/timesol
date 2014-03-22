@@ -131,20 +131,10 @@ function timesol_update_1() {
   );
   db_add_field('empClkIn', 'flag', $flag);
 }
-
-function timesol_update_2() {
-  $ot_check = array(
-    'type' => 'int',
-    'not null' => FALSE,
-    'unsigned' => TRUE,
-    'description' => 'Check for over time in the week.' ,
-  );
-  db_add_field('empClkIn', 'ot_check', $ot_check);
-}
 /**
  * drops price_dr table.
  */
-function timesol_update_3() {
+function timesol_update_2() {
   if (db_table_exists('project')) {
 	 db_drop_table('project');
   }
@@ -152,6 +142,6 @@ function timesol_update_3() {
 	 db_drop_table('request');
   }
 }
-function timesol_update_4() {
+function timesol_update_3() {
   db_drop_field('empClkIn', 'pid');
 }
