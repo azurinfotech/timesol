@@ -82,6 +82,6 @@ function request_update_2() {
   );
   db_add_field('request', 'tmoff', $timeoff);
 }
-function timesol_update_3() {
+function request_update_3() {
   db_drop_field('request', 'tmoff');
 }
