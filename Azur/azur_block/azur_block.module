@@ -348,6 +348,7 @@ function azur_block_node_update($node) {
  * function to generate the Recent Activity block
  */
 function recent_activity_block_generate() {
+  $output = '';
   global $user;
   $squery = db_select('employee', 'e');
   $squery -> fields('e', array('eid'));
@@ -355,12 +356,14 @@ function recent_activity_block_generate() {
   $eid = $squery -> execute() -> fetchField();
   $clk_data = employee_generate_clkin_details($eid);
   $req_date = employee_generate_request_data($eid);
-	foreach($clk_data as $row){
-		dpm($row);
-	}
-	foreach($req_date as $res){
-		dpm($res);
-	}
+  $output = '<div class ="metro metro-responsive-tiles panorama" "><div class="panorama-sections"><div class="panorama-section tile-span-1" >';
+  foreach ($clk_data as $row) {
+    $output .= '<div class="tile imagetext bg-color-azur activity-row wide"><div class="activity-data">' . $row['description'] . ' ' . $row['data'] . '</div></div>';
+  }
+  foreach ($req_date as $res) {
+    $output .= '<div class="tile imagetext bg-color-azur activity-row wide"><div class="activity-data">' . $res['description'] .'</div></div>';
+  }
+  return $output;
 }
 
 /**
@@ -375,7 +378,7 @@ function employee_generate_clkin_details($eid) {
   ));
   $squery -> condition('eid', $eid, '=');
   $squery -> orderBy('cid', 'DESC');
-  $squery -> range(0, 4);
+  $squery -> range(0, 1);
   $result = $squery -> execute();
   foreach ($result as $row) {
     if ($row -> clkout == NULL) {
@@ -401,6 +404,7 @@ function employee_generate_request_data($eid) {
   $rows = array();
   $squery = db_select('request', 'r');
   $squery -> fields('r', array(
+    'rid',
     'rtype',
     'sdate',
     'adid',
@@ -411,10 +415,10 @@ function employee_generate_request_data($eid) {
   $result = $squery -> condition($or) -> range(0, 4) -> execute();
   foreach ($result as $row) {
     if ($row -> eid == $eid) {
-      $rows[] = array('description' => t('You created a new reuest on') . date('d/m/y', $row -> sdate));
+      $rows[] = array('description' => t('You created a new request on ') . date('d/m/y', $row -> sdate));
     }
     else {
-      $rows[] = array('description' => t('A request has been assigned to you on') . date('d/m/y', $row -> sdate));
+      $rows[] = array('description' => t('A request has been assigned to you on ') . date('d/m/y', $row -> sdate));
     }
   }
   return $rows;
