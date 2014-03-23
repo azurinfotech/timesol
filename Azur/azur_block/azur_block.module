@@ -8,6 +8,10 @@ function azur_block_block_info() {
     'info' => t('Carousel block'),
     'cache' => DRUPAL_NO_CACHE
   );
+  $block['recent_activity'] = array(
+    'info' => t('Recennt Activity'),
+    'cache' => DRUPAL_NO_CACHE
+  );
   return $block;
 }
 
@@ -22,6 +26,12 @@ function azur_block_block_view($delta = '') {
       $block = array(
         'subject' => t('Azur Carousel'),
         'content' => theme('azur_carousel_block', array('data' => $carousel)),
+      );
+      break;
+    case 'recent_activity' :
+      $block = array(
+        'subject' => t('Recent Activity'),
+        'content' => recent_activity_block_generate()
       );
       break;
   }
@@ -89,21 +99,21 @@ function theme_azur_carousel_block($variables) {
         $value['data'] = $value['news_data'];
         $effect = $value['more'];
       }
-    else if ($value['type'] == 2) {
-      $value['title'] = $value['effects_title'];
-      $value['data'] = $value['news_data'];
-			$effect = $value['more'];
-    }
-    else if ($value['type'] == 3) {
-      $effect = '<div class="video_effect">' . $value['video_data'] . '</div>';
-    }
-    else if ($value['type'] == 4) {
-      $value['title'] = $value['effects_title'];
-      $value['data'] = $value['case_data'];
-			$effect = $value['more'];
-    }
-    if ($key == 0) {
-      $output .= '<div class="item active">
+      else if ($value['type'] == 2) {
+        $value['title'] = $value['effects_title'];
+        $value['data'] = $value['news_data'];
+        $effect = $value['more'];
+      }
+      else if ($value['type'] == 3) {
+        $effect = '<div class="video_effect">' . $value['video_data'] . '</div>';
+      }
+      else if ($value['type'] == 4) {
+        $value['title'] = $value['effects_title'];
+        $value['data'] = $value['case_data'];
+        $effect = $value['more'];
+      }
+      if ($key == 0) {
+        $output .= '<div class="item active">
     		<img src=" ' . $value['img'] . '"/>
 					<div class="container right-top">
 						<div class="carousel-caption">
@@ -131,14 +141,15 @@ function theme_azur_carousel_block($variables) {
 		</div>';
   return $output;
 }
+
 /**
  * Implements hook_form_alter
  */
 function azur_block_form_alter(&$form, &$form_state, $formid) {
-	if($formid == 'taxonomy_form_term'){
-		
-	}
-	else if ($formid == 'carousel_node_form') {
+  if ($formid == 'taxonomy_form_term') {
+
+  }
+  else if ($formid == 'carousel_node_form') {
     $default = array();
     $edit = arg(2);
     if ($edit == 'edit') {
@@ -331,4 +342,80 @@ function azur_block_node_insert($node) {
 function azur_block_node_update($node) {
   $delquery = db_delete('azur_carousel_fields') -> condition('nodeid', $node -> nid, '=');
   azur_block_node_insert($node);
+}
+
+/**
+ * function to generate the Recent Activity block
+ */
+function recent_activity_block_generate() {
+  global $user;
+  $squery = db_select('employee', 'e');
+  $squery -> fields('e', array('eid'));
+  $squery -> condition('uid', $user -> uid, '=');
+  $eid = $squery -> execute() -> fetchField();
+  $clk_data = employee_generate_clkin_details($eid);
+  $req_date = employee_generate_request_data($eid);
+	foreach($clk_data as $row){
+		dpm($row);
+	}
+	foreach($req_date as $res){
+		dpm($res);
+	}
+}
+
+/**
+ * Generate clock in/out details for the recent activity block
+ */
+function employee_generate_clkin_details($eid) {
+  $rows = array();
+  $squery = db_select('empclkin', 'clk');
+  $squery -> fields('clk', array(
+    'clkin',
+    'clkout'
+  ));
+  $squery -> condition('eid', $eid, '=');
+  $squery -> orderBy('cid', 'DESC');
+  $squery -> range(0, 4);
+  $result = $squery -> execute();
+  foreach ($result as $row) {
+    if ($row -> clkout == NULL) {
+      $rows[] = array(
+        'description' => t('Last Clock In'),
+        'data' => date('d/m/y/  H:i', $row -> clkin)
+      );
+    }
+    else {
+      $rows[] = array(
+        'description' => t('Last Clock Out'),
+        'data' => date('d/m/y/  H:i', $row -> clkout)
+      );
+    }
+  }
+  return $rows;
+}
+
+/**
+ * Generate request data for the recent activity block
+ */
+function employee_generate_request_data($eid) {
+  $rows = array();
+  $squery = db_select('request', 'r');
+  $squery -> fields('r', array(
+    'rtype',
+    'sdate',
+    'adid',
+    'eid'
+  ));
+  $squery -> orderBy('rid', 'DESC');
+  $or = db_or() -> condition('eid', $eid, '=') -> condition('adid', $eid, '=');
+  $result = $squery -> condition($or) -> range(0, 4) -> execute();
+  foreach ($result as $row) {
+    if ($row -> eid == $eid) {
+      $rows[] = array('description' => t('You created a new reuest on') . date('d/m/y', $row -> sdate));
+    }
+    else {
+      $rows[] = array('description' => t('A request has been assigned to you on') . date('d/m/y', $row -> sdate));
+    }
+  }
+  return $rows;
 }

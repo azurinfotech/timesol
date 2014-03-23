@@ -44,6 +44,11 @@ function azur_emp_menu() {
     'access arguments' => array(CONST_PERM_ADDRESS),
     'type' => MENU_NORMAL_ITEM,
   );
+  $items['groups/autocomplete'] = array(
+    'page callback' => 'groups_generate_autocomplete',
+    'access arguments' => array(TRUE),
+    'type' => MENU_CALLBACK,
+  );
   return $items;
 }
 
@@ -58,7 +63,6 @@ function azur_emp_form($form, &$form_state, $eid = 0) {
     $query = db_select('employee', 'e') -> fields('e', array(
       'firstname',
       'lastname',
-      // 'department',
       'type',
       'sdate',
       'status',
@@ -73,7 +77,7 @@ function azur_emp_form($form, &$form_state, $eid = 0) {
   $form['eid'] = array(
     '#type' => 'hidden',
     '#title' => t('Employee ID'),
-    '#value' => isset($edit) ? $edit -> eid : '',
+    '#value' => isset($edit) ? $eid : '',
   );
   $form['firstname'] = array(
     '#type' => 'textfield',
@@ -89,13 +93,26 @@ function azur_emp_form($form, &$form_state, $eid = 0) {
     '#maxlength' => '64',
     '#required' => TRUE,
   );
-  // $form['department'] = array(
-    // '#type' => 'select',
-    // '#title' => t('Department'),
-    // '#options' => departments_og(),
-    // '#default_value' => isset($edit) ? $edit -> department : '',
-    // '#required' => TRUE,
-  // );
+  if (in_array('intranet_admin', $user -> roles)) {
+    $form['mgr_id'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Manager'),
+      '#default_value' => isset($edit) ? $edit -> mgr_id : '',
+      '#required' => TRUE,
+    );
+    $form['payment'] = array(
+      '#type' => 'textfield',
+      '#title' => t('Payment details'),
+      '#description' => t('Enter the payment details. For partime employees and overtime pay for full time employees'),
+      '#default_value' => isset($edit) ? $edit -> payment : '',
+    );
+  }
+  $form['departments'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Department'),
+    '#description' => t('Enter the department.'),
+    '#autocomplete_path' => 'groups/autocomplete'
+  );
   $form['type'] = array(
     '#type' => 'select',
     '#title' => t('Type of an employee'),
@@ -137,28 +154,41 @@ function azur_emp_form_submit($form, &$form_state) {
   global $user;
   $fname = $form_state['values']['firstname'];
   $lname = $form_state['values']['lastname'];
-  //$dept = $form_state['values']['department'];
   $type = $form_state['values']['type'];
   $sdate = strtotime($form_state['values']['sdate']);
   $qua = $form_state['values']['qualification'];
   $enum = $form_state['values']['enum'];
+  $gid = autocomplete_get_id_func($form_state['values']['department']);
   $eid = $form_state['values']['eid'];
   if (!empty($eid)) {
     $updated = db_update('employee') -> fields(array(
       'firstname' => $fname,
       'lastname' => $lname,
-      // 'department' => $dept,
       'type' => $type,
       'sdate' => ($sdate),
       'qualification' => $qua,
       'enum' => $enum
     )) -> condition('eid', $eid, '=') -> execute();
+    $og = new OgMembership;
+    $og -> type = 'og_membership_type_default';
+    $og -> etid = $user -> uid;
+    $og -> entity_type = 'user';
+    $og -> gid = $gid;
+    $og -> group_type = 'node';
+    $og -> state = 1;
+    $og -> created = time();
+    $og -> field_name = 'og_user_node';
+    $og -> language = 'en';
+    $og -> save();
   }
   else {
+    $del_user_from_group = db_delete('og_users_roles') -> condition('uid', $user -> uid, '=');
+    $del_user_from_group -> condition('gid', $gid, '=');
+    $del_user_from_group -> condition('group_type', 'node', 'LIKE') -> execute();
+    db_delete('og_membership') -> condition('gid', $gid, '=') -> condition('etid', $user -> uid, '=') -> condition('entity_type', 'user', 'LIKE') -> condition('group_type', 'node', 'LIKE') -> execute();
     $values = array(
       'firstname' => $fname,
       'lastname' => $lname,
-      // 'department' => $dept,
       'type' => $type,
       'sdate' => ($sdate),
       'qualification' => $qua,
@@ -166,6 +196,17 @@ function azur_emp_form_submit($form, &$form_state) {
       'uid' => $user -> uid,
     );
     $eid = db_insert('employee') -> fields($values) -> execute();
+    $og = new OgMembership;
+    $og -> type = 'og_membership_type_default';
+    $og -> etid = $user -> uid;
+    $og -> entity_type = 'user';
+    $og -> gid = $gid;
+    $og -> group_type = 'node';
+    $og -> state = 1;
+    $og -> created = time();
+    $og -> field_name = 'og_user_node';
+    $og -> language = 'en';
+    $og -> save();
   }
   if (isset($eid)) {
     drupal_goto("employee/address/$eid");
@@ -422,14 +463,14 @@ function azur_emp_views_api() {
  * Organic group function for departments
  */
 // function departments_og() {
-  // $squery = db_select('og_membership', 'og');
-  // $squery -> fields('og', array(
-    // 'etid',
-    // 'gid'
-  // ));
-  // $result = $squery -> co -> execute() -> fetchAllKeyed();
-  // dpm($result);
-  // return $result;
+// $squery = db_select('og_membership', 'og');
+// $squery -> fields('og', array(
+// 'etid',
+// 'gid'
+// ));
+// $result = $squery -> co -> execute() -> fetchAllKeyed();
+// dpm($result);
+// return $result;
 // }
 
 /**
@@ -446,4 +487,21 @@ function azur_user_return_employee() {
   $query -> condition('uid', $user -> uid, '=');
   $result = $query -> execute() -> fetchObject();
   return $result;
+}
+
+/**
+ * autocomplete function for generating the groups
+ */
+function groups_generate_autocomplete($string = '') {
+  $matches = array();
+  $query = db_select('node', 'n') -> fields('c', array(
+    'nid',
+    'title'
+  )) -> condition('n.title', '%' . db_like($string) . '%', 'LIKE');
+  $query -> condition('n.type', 'depatments', 'LIKE');
+  $res = $query -> execute();
+  foreach ($res as $row) {
+    $matches[$row -> title . " [Id:$row->tid]"] = check_plain($row -> title);
+  }
+  return drupal_json_output($matches);
 }
