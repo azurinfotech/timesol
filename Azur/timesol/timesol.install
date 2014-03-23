@@ -109,9 +109,6 @@ function timesol_update_2() {
 	 db_drop_table('request');
   }
 }
-function timesol_update_3() {
-  db_drop_field('empClkIn', 'pid');
-}
 function timesol_update_4() {
   if (db_table_exists('empTimeoff')) {
 	 db_drop_table('empTimeoff');
