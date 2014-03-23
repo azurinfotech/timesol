@@ -74,3 +74,14 @@ function request_update_1() {
   );
   db_add_field('request', 'desc', $desc);
 }
+function request_update_2() {
+  $timeoff = array(
+     'type' => 'int',
+    'not null' => FALSE,
+    'description' => "Time Off",
+  );
+  db_add_field('request', 'tmoff', $timeoff);
+}
+function request_update_3() {
+  db_drop_field('request', 'tmoff');
+}

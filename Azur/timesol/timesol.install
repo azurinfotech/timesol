@@ -1,47 +1,14 @@
-<?php
+ <?php
 
 /**
  * Implements hook_schema().
  */
 function timesol_schema() {
   $schema = array();
-  _timesol_emp_Timeoff($schema);
   _timesol_emp_ClockIn($schema);
   _timesol_emp_Overtime($schema);
   return $schema;
 }
-function _timesol_emp_Timeoff(&$schema) {
-  $schema['empTimeoff'] = array(
-    'description' => 'Stores users time details',
-    'fields' => array(
-      'etid' => array(
-        'type' => 'serial',
-        'description' => 'User time ID',
-      ),
-      'eid' => array(
-        'type' => 'int',
-        'not null' => TRUE,
-         'description' => 'Employee ID',
-      ),
-      'sdate' => array(
-        'description' => 'Start Date',
-        'type' => 'varchar',
-        'length' => 256,
-      ),
-      'edate' => array(
-        'description' => 'End Date',
-       'type' => 'varchar',
-        'length' => 256,
-      ),
-    ),
-    'primary key' => array('etid'),
-    'indexes' => array(
-      'employee' => array('eid'),
-    ),
-    
-  );
-}
-
 // Employee Clock IN/OUT Table
  function _timesol_emp_ClockIn(&$schema)
  {
@@ -142,6 +109,8 @@ function timesol_update_2() {
 	 db_drop_table('request');
   }
 }
-function timesol_update_3() {
-  db_drop_field('empClkIn', 'pid');
+function timesol_update_4() {
+  if (db_table_exists('empTimeoff')) {
+	 db_drop_table('empTimeoff');
+  }
 }
