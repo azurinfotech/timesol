@@ -24,8 +24,8 @@ function azur_emp_menu() {
     'access arguments' => array(CONST_PERM_CREATE_EMPLOYEE),
     'type' => MENU_NORMAL_ITEM,
   );
-  $items['employee/%/edit'] = array(
-    'title' => 'Edit',
+  $items['user/%/pdetails_edit'] = array(
+    'title' => 'Edit Personal details',
     'page callback' => 'drupal_get_form',
     'page arguments' => array(
       'azur_emp_form',
@@ -65,7 +65,6 @@ function azur_emp_form($form, &$form_state, $eid = 0) {
       'lastname',
       'type',
       'sdate',
-      'status',
       'qualification',
       'enum'
     ));
@@ -93,18 +92,19 @@ function azur_emp_form($form, &$form_state, $eid = 0) {
     '#maxlength' => '64',
     '#required' => TRUE,
   );
-  if (in_array('intranet_admin', $user -> roles)) {
+  if (in_array('intranet_admin', $user -> roles) || in_array('administrator', $user -> roles)) {
     $form['mgr_id'] = array(
       '#type' => 'textfield',
       '#title' => t('Manager'),
-      '#default_value' => isset($edit) ? $edit -> mgr_id : '',
+      '#default_value' => isset($edit -> mgr_id) ? $edit -> mgr_id : '',
+      '#autocomplete_path' => 'adminid/autocomplete',
       '#required' => TRUE,
     );
     $form['payment'] = array(
       '#type' => 'textfield',
       '#title' => t('Payment details'),
       '#description' => t('Enter the payment details. For partime employees and overtime pay for full time employees'),
-      '#default_value' => isset($edit) ? $edit -> payment : '',
+      '#default_value' => isset($edit -> payment) ? $edit -> payment : '',
     );
   }
   $form['departments'] = array(
@@ -161,10 +161,16 @@ function azur_emp_form_submit($form, &$form_state) {
   $gid = autocomplete_get_id_func($form_state['values']['department']);
   $eid = $form_state['values']['eid'];
   if (!empty($eid)) {
+    $del_user_from_group = db_delete('og_users_roles') -> condition('uid', $user -> uid, '=');
+    $del_user_from_group -> condition('gid', $gid, '=');
+    $del_user_from_group -> condition('group_type', 'node', 'LIKE') -> execute();
+    db_delete('og_membership') -> condition('gid', $gid, '=') -> condition('etid', $user -> uid, '=') -> condition('entity_type', 'user', 'LIKE') -> condition('group_type', 'node', 'LIKE') -> execute();
     $updated = db_update('employee') -> fields(array(
       'firstname' => $fname,
       'lastname' => $lname,
       'type' => $type,
+      'payment' => $form_state['values']['payment'],
+      'mgr_id' => autocomplete_get_id_func($form_state['values']['mgr_id']),
       'sdate' => ($sdate),
       'qualification' => $qua,
       'enum' => $enum
@@ -182,10 +188,6 @@ function azur_emp_form_submit($form, &$form_state) {
     $og -> save();
   }
   else {
-    $del_user_from_group = db_delete('og_users_roles') -> condition('uid', $user -> uid, '=');
-    $del_user_from_group -> condition('gid', $gid, '=');
-    $del_user_from_group -> condition('group_type', 'node', 'LIKE') -> execute();
-    db_delete('og_membership') -> condition('gid', $gid, '=') -> condition('etid', $user -> uid, '=') -> condition('entity_type', 'user', 'LIKE') -> condition('group_type', 'node', 'LIKE') -> execute();
     $values = array(
       'firstname' => $fname,
       'lastname' => $lname,
@@ -504,4 +506,23 @@ function groups_generate_autocomplete($string = '') {
     $matches[$row -> title . " [Id:$row->tid]"] = check_plain($row -> title);
   }
   return drupal_json_output($matches);
+}
+/**
+ * function to fetch user name and user id
+ */
+ function azur_employee_name($eid){
+ 	$query = db_select('employee', 'emp');
+  $query -> fields('emp', array(
+    'firstname',
+    'lastname'
+  ));
+	$query -> condition('eid',$eid,'=');
+	$res = $query->execute()->fetchObject();
+	return $res->firstname. ' '. $res->lastname;
+ }
+
+function azur_employee_get_manager_id($eid){
+	$squery = db_select('employee','emp');
+	$squery -> fields('emp',array('mgr_id'));
+	$mgr_id = $squery -> condition('eid',$eid,'=') ->execute() -> fetchField();
 }

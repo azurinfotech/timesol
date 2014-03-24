@@ -177,3 +177,12 @@ function azur_emp_update_4() {
   ));
   
 }
+function azur_emp_update_7(){
+	$add = array(
+    'type' => 'int',
+    'not null' => FALSE,
+     'unsigned' => TRUE,
+    'description' => "Payment",
+  );
+  db_add_field('employee', 'payment', $add);
+}

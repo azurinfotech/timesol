@@ -24,6 +24,12 @@ function request_menu() {
     'access arguments' => array(CONST_PERM_REQUEST),
     'type' => MENU_NORMAL_ITEM,
   );
+  $items['request'] = array(
+    'title' => 'Request',
+    'page callback' => 'requests_home',
+    'access arguments' => array(CONST_PERM_REQUEST),
+    'type' => MENU_NORMAL_ITEM,
+  );
   $items['request/%/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'drupal_get_form',
@@ -36,6 +42,24 @@ function request_menu() {
   );
   $items['adminid/autocomplete'] = array(
     'page callback' => 'admin_autocomplete',
+    'access arguments' => array(CONST_PERM_ACCESS_ADMINID),
+    'type' => MENU_CALLBACK,
+  );
+  $items['approve/%/request'] = array(
+    'page callback' => 'approve_reject_request',
+    'page arguments' => array(
+      0,
+      1
+    ),
+    'access arguments' => array(CONST_PERM_ACCESS_ADMINID),
+    'type' => MENU_CALLBACK,
+  );
+  $items['reject/%/request'] = array(
+    'page callback' => 'approve_reject_request',
+    'page arguments' => array(
+      0,
+      1
+    ),
     'access arguments' => array(CONST_PERM_ACCESS_ADMINID),
     'type' => MENU_CALLBACK,
   );
@@ -52,6 +76,7 @@ function request_form($form, &$form_state, $eid = 0, $rid = 0) {
       'rid',
       'eid',
       'adid',
+      'descp',
       'fid',
       'rtype'
     ));
@@ -74,6 +99,13 @@ function request_form($form, &$form_state, $eid = 0, $rid = 0) {
     '#title' => t('Admin Id'),
     '#required' => TRUE,
     '#autocomplete_path' => 'adminid/autocomplete',
+    '#defalut_value' => isset($edit) ? $edit -> adid : ''
+  );
+  $form['description'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Description'),
+    '#description' => t('Enter a summary for the request.'),
+    '#default_value' => isset($edit) ? $edit -> descp : ''
   );
   $form['fid'] = array(
     '#type' => 'managed_file',
@@ -125,7 +157,8 @@ function request_status($sta = '') {
   if (!isset($stat)) {
     $stat = array(
       1 => t('Approved'),
-      2 => t('Pending'),
+      0 => t('Pending'),
+      2 => t('Rejected')
     );
   }
   if (empty($sta)) {
@@ -157,8 +190,8 @@ function admin_autocomplete($string = '') {
  * Request Form Submit function.
  */
 function request_form_submit($form, &$form_state) {
-	 	if(!empty($form_state['values']['fid'])){
-	 $file = file_load($form_state['values']['fid']);
+  if (!empty($form_state['values']['fid'])) {
+    $file = file_load($form_state['values']['fid']);
     // Change status to permanent.
     $file -> status = FILE_STATUS_PERMANENT;
     // Save.
@@ -167,10 +200,10 @@ function request_form_submit($form, &$form_state) {
       drupal_set_message(t('The file has been uploaded.'));
     }
     else {
-      drupal_set_message(t('The file could not be uploaded. Please contact the site administrator.'), 'error' );
-      }}
-      if (empty($form_state[
-    'values']['rid'])) {
+      drupal_set_message(t('The file could not be uploaded. Please contact the site administrator.'), 'error');
+    }
+  }
+  if (empty($form_state['values']['rid'])) {
     $emp = azur_user_return_employee();
     $values = array(
       'eid' => $emp -> eid,
@@ -178,17 +211,19 @@ function request_form_submit($form, &$form_state) {
       'sdate' => time(),
       'rstatus' => 0,
       'rtype' => $form_state['values']['rtype'],
+      'descp' => $form_state['values']['description'],
       'adid' => autocomplete_get_id_func($form_state['values']['adid']),
     );
     $query = db_insert('request') -> fields($values) -> execute();
   }
   else {
-  	$rid = $form_state['values']['rid'];
+    $rid = $form_state['values']['rid'];
     $updated = db_update('request') -> fields(array(
       'fid' => $form_state['values']['fid'],
       'rstatus' => 0,
       'adid' => autocomplete_get_id_func($form_state['values']['adid']),
       'rtype' => $form_state['values']['rtype'],
+      'descp' => $form_state['values']['description'],
     )) -> condition('rid', $rid, '=') -> execute();
   }
 
@@ -212,4 +247,27 @@ function request_views_api() {
     'api' => 3,
     'path' => drupal_get_path('module', 'request') . '/views',
   );
+}
+
+/**
+ * Function to approve or reject requests.
+ */
+function approve_reject_request($action, $rid) {
+  if ($action == 'approve') {
+    db_update('request') -> fields(array('rstatus' => 1)) -> condition('rid', $rid, '=') -> execute();
+  }
+  else if ($action == 'reject') {
+    db_update('request') -> fields(array('rstatus' => 2)) -> condition('rid', $rid, '=') -> execute();
+  }
+}
+
+function requests_home() {
+  $employee = azur_user_return_employee();
+  $output = '<div class ="metro metro-responsive-tiles panorama" "><div class="panorama-sections"><div class="panorama-section tile-span-2" >';
+  $output .= '<a class="tile imagetext bg-color-azur activity-row square" href="send/request">Add requests</a>';
+  $output .= '<a class="tile imagetext bg-color-azur activity-row square" href="all/' . $employee -> eid . '/requests">Requests Summary</a>';
+  $output .= '<a class="tile imagetext bg-color-azur activity-row square" href="your/' . $employee -> eid . '/requests">Your requests</a>';
+  $output .= '<a class="tile imagetext bg-color-azur activity-row square" href="assignedto/' . $employee -> eid . '/requests">Requests assigned to you</a>';
+  $output .= '</div></div>';
+  return $output;
 }

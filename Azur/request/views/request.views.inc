@@ -11,7 +11,7 @@ function request_views_data() {
 
 function _request_views_data(&$data) {
   	
-  $data['request']['table']['group'] = t('Employee');
+  $data['request']['table']['group'] = t('Request');
   $data['request']['table']['base'] = array(
     'field' => 'rid',
     'title' => t('Request'),
@@ -26,16 +26,13 @@ function _request_views_data(&$data) {
     ),
     'filter' => array('handler' => 'views_handler_filter_numeric', ),
     'sort' => array('handler' => 'views_handler_sort_group_by_numeric', ),
-    'argument' => array('handler' => 'views_handler_argument_numeric', ),
-    'title' => t('request id'),
-    'help' => t(''),
   );
 	
   $data['request']['eid'] = array(
     'title' => t('Employee id.'),
     'help' => t('Employee id.'),
     'field' => array(
-      'handler' => 'views_handler_field',
+      'handler' => 'views_handler_field_azur_static',
       'click sortable' => TRUE,
     ),
     'sort' => array('handler' => 'views_handler_sort', ),
@@ -48,16 +45,22 @@ function _request_views_data(&$data) {
       'field' => 'eid',
       'label' => t('Employee request Record'),
     ),
+    'argument' => array('handler' => 'views_handler_argument_numeric', ),
+    'title' => t('Employee Id'),
+    'help' => t(''),
   );
   $data['request']['adid'] = array(
     'title' => t('Admin ID'),
     'help' => t('Admin ID'),
     'field' => array(
-      'handler' => 'views_handler_field',
+      'handler' => 'views_handler_field_azur_static',
       'click sortable' => TRUE,
     ),
     'filter' => array('handler' => 'views_handler_filter_string', ),
     'sort' => array('handler' => 'views_handler_sort', ),
+    'argument' => array('handler' => 'views_handler_argument_numeric', ),
+    'title' => t('Assigned to'),
+    'help' => t(''),
   );
  $data['request']['fid'] = array(
     'title' => t('File ID'),
@@ -73,7 +76,7 @@ function _request_views_data(&$data) {
     'title' => t('Request status'),
     'help' => t('Request status'),
     'field' => array(
-      'handler' => 'views_handler_field',
+      'handler' => 'views_handler_field_azur_static',
       'click sortable' => TRUE,
     ),
     'filter' => array('handler' => 'views_handler_filter_string', ),
@@ -88,7 +91,7 @@ function _request_views_data(&$data) {
     ),
     'sort' => array('handler' => 'views_handler_sort', ),
   );
-  $data['request']['desc'] = array(
+  $data['request']['descp'] = array(
     'title' => t('Request description'),
     'help' => t('Request description'),
     'field' => array(

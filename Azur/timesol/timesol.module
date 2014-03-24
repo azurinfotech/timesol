@@ -249,6 +249,9 @@ function taxonomy_vocabulary_get_vid($name) {
  * Implements hook_form_submit
  */
 function timesol_clockout_details_form_submit($form, &$form_state) {
+	$mgr = azur_employee_get_manager_id($form_state['values']['eid']);
+	 $empclkin = timesol_return_clockin_time_status($form_state['values']['eid']);
+	 $flag = $empclkin -> flag;
   if ($form_state['values']['multiple'] == 0) {
     $pid = 0;
     // if ($form_state['values']['new_project'] == 1) {
@@ -268,6 +271,17 @@ function timesol_clockout_details_form_submit($form, &$form_state) {
       'clkout' => time(),
       'pid' => $pid
     )) -> isNull('clkout') -> condition('eid', $form_state['values']['eid'], '=') -> execute();
+		if($flag){
+			$inquery = db_insert('request') -> fields(array(
+          'eid' => $form_state['values']['eid'],
+          'fid' => NULL,
+          'sdate' => time(),
+          'rstatus' => 0,
+          'rtype' => 2,
+          'adid' => $mgr,
+          'descp' => t('This is a clock in request')
+        ));
+		}
   }
   else {
     $values = array();
@@ -293,7 +307,6 @@ function timesol_clockout_details_form_submit($form, &$form_state) {
     }
     for ($i = 0; $i < $form_state['input']['multi']; $i++) {
       if ($i == 0) {
-        $empclkin = timesol_return_clockin_time_status($form_state['values']['eid']);
         $flag = $empclkin -> flag;
         $clkin = $empclkin -> clkin + timesol_convert_h_to_s($values[$i]['clkout']);
         $upquery = db_update('empclkin');
@@ -314,6 +327,17 @@ function timesol_clockout_details_form_submit($form, &$form_state) {
         )) -> execute();
         $clkin = $clkout;
       }
+     if($flag){
+     	$inquery = db_insert('request') -> fields(array(
+          'eid' => $form_state['values']['eid'],
+          'fid' => NULL,
+          'sdate' => time(),
+          'rstatus' => 0,
+          'rtype' => 2,
+          'adid' => $mgr,
+          'descp' => t('This is a clock in request')
+        ));
+     }
     }
   }
 }
@@ -395,14 +419,6 @@ function timesol_cron() {
       $time = time();
       if (($time - $row -> clkin % 3600) > 20) {
         db_update('empclkin') -> fields(array('flag' => 1)) -> condition('cid', $row -> cid, '=') -> execute();
-        $inquery = db_insert('request') -> fields(array(
-          'eid' => $row -> eid,
-          'fid' => NULL,
-          'sdate' => time(),
-          'rstatus' => 0,
-          'rtype' => 2,
-          'adid' => $row -> mgr_id,
-        ));
       }
     }
   }

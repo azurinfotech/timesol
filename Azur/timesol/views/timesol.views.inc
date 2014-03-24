@@ -38,6 +38,9 @@ function timesolution_views_data(&$data){
       'handler' => 'views_handler_field',
       'click sortable' => TRUE,
     ),
+    'argument' => array('handler' => 'views_handler_argument_numeric', ),
+    'title' => t('employee id'),
+    'help' => t(''),
 	'sort' => array('handler' => 'views_handler_sort', ),
     'relationship' => array(
       'title' => t('Employee ID'),
@@ -68,6 +71,18 @@ function timesolution_views_data(&$data){
     ),
     'filter' =>array('handler' => 'views_handler_filter_date'),
     'sort' => array('handler' => 'views_handler_sort', ),
+  );
+	$data['empClkIn']['clkin_filter'] = array(
+    'title' => t('Using the clkin as a filter.'),
+    'help' => t('Clock in filter'),
+    'real field' => 'clkin',
+    'field' => array(
+      'handler' => 'views_handler_field_date',
+      'click sortable' => TRUE,
+    ),
+    'filter' => array('handler' => 'views_handler_filter_date', ),
+    'sort' => array('handler' => 'views_handler_sort_date'),
+    'argument' => array('handler' => 'views_handler_argument_date', ),
   );
   $data['empClkIn']['clkout'] = array(
     'title' => t('ClockOut'),

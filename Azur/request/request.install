@@ -47,7 +47,7 @@ function employee_request(&$schema){
         'type' => 'varchar',
         'length' => 256,
         ),
-        'desc' => array(
+        'descp' => array(
         'type' => 'text',
         'not null' => FALSE,
         'size' => 'medium',
@@ -65,7 +65,7 @@ function employee_request(&$schema){
     ),
  );
 }
-function request_update_1() {
+function request_update_5() {
   $desc = array(
      'type' => 'text',
     'not null' => FALSE,
@@ -74,14 +74,12 @@ function request_update_1() {
   );
   db_add_field('request', 'desc', $desc);
 }
-function request_update_2() {
-  $timeoff = array(
-     'type' => 'int',
+function request_update_6() {
+  $desc = array(
+     'type' => 'text',
     'not null' => FALSE,
-    'description' => "Time Off",
+    'size' => 'medium',
+    'description' => "Request description",
   );
-  db_add_field('request', 'tmoff', $timeoff);
-}
-function request_update_3() {
-  db_drop_field('request', 'tmoff');
+  db_change_field('request', 'desc','descp', $desc);
 }
