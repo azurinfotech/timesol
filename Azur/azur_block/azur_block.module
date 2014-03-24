@@ -356,13 +356,16 @@ function recent_activity_block_generate() {
   $eid = $squery -> execute() -> fetchField();
   $clk_data = employee_generate_clkin_details($eid);
   $req_date = employee_generate_request_data($eid);
-  $output = '<div class ="metro metro-responsive-tiles panorama" "><div class="panorama-sections"><div class="panorama-section tile-span-1" >';
   foreach ($clk_data as $row) {
-    $output .= '<div class="tile imagetext bg-color-azur activity-row wide"><div class="activity-data">' . $row['description'] . ' ' . $row['data'] . '</div></div>';
+    $output .= '<div class="tile imagetext bg-color-azur activity-row wide-extra"><div class="activity-data">' . $row['description'] . ' ' . $row['data'] . '</div></div>';
   }
   foreach ($req_date as $res) {
-    $output .= '<div class="tile imagetext bg-color-azur activity-row wide"><div class="activity-data">' . $res['description'] .'</div></div>';
+    $output .= '<div class="tile imagetext bg-color-azur activity-row wide-extra"><div class="activity-data">' . $res['description'] .'</div></div>';
   }
+	if($output == '' ){
+		$output .= '<div>No Content yet.</div>';
+	}
+	$output = '<div class ="metro metro-responsive-tiles panorama" "><div class="panorama-sections"><div class="panorama-section tile-span-1" >'.$output.'</div></div>';
   return $output;
 }
 

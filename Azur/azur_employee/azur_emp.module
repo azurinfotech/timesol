@@ -10,6 +10,7 @@ function azur_emp_permission() {
   return array(
     CONST_PERM_CREATE_EMPLOYEE => array('title' => t('Create Employee')),
     CONST_PERM_EDIT_EMPLOYEE => array('title' => t('Edit Employee')),
+    CONST_PERM_ADDRESS => array('title' => t('Enter the address details'))
   );
 }
 
@@ -46,7 +47,7 @@ function azur_emp_menu() {
   );
   $items['groups/autocomplete'] = array(
     'page callback' => 'groups_generate_autocomplete',
-    'access arguments' => array(TRUE),
+    'access arguments' => array(CONST_PERM_CREATE_EMPLOYEE),
     'type' => MENU_CALLBACK,
   );
   return $items;
@@ -60,19 +61,11 @@ function azur_emp_form($form, &$form_state, $eid = 0) {
   global $user;
   $edit = NULL;
   if ($eid != 0) {
-    $query = db_select('employee', 'e') -> fields('e', array(
-      'firstname',
-      'lastname',
-      'type',
-      'sdate',
-      'qualification',
-      'enum'
-    ));
-    $query -> leftJoin('address', 'addr', 'addr.eid = e.eid');
-    $query -> fields('addr', array('aid'));
-    $edit = $query -> condition('e.eid', $eid) -> execute() -> fetchobject();
+    $query = db_select('employee', 'e') -> fields('e');
+    // $query -> leftJoin('address', 'addr', 'addr.eid = e.eid');
+    // $query -> fields('addr', array('aid'));
+    $edit = $query -> condition('eid', $eid,'=') -> execute() -> fetchObject();
   }
-
   $form['eid'] = array(
     '#type' => 'hidden',
     '#title' => t('Employee ID'),
@@ -96,7 +89,7 @@ function azur_emp_form($form, &$form_state, $eid = 0) {
     $form['mgr_id'] = array(
       '#type' => 'textfield',
       '#title' => t('Manager'),
-      '#default_value' => isset($edit -> mgr_id) ? $edit -> mgr_id : '',
+      '#default_value' => isset($edit -> mgr_id) ?azur_employee_name($edit -> mgr_id) : '',
       '#autocomplete_path' => 'adminid/autocomplete',
       '#required' => TRUE,
     );
@@ -104,7 +97,7 @@ function azur_emp_form($form, &$form_state, $eid = 0) {
       '#type' => 'textfield',
       '#title' => t('Payment details'),
       '#description' => t('Enter the payment details. For partime employees and overtime pay for full time employees'),
-      '#default_value' => isset($edit -> payment) ? $edit -> payment : '',
+      '#default_value' => isset($edit -> payment) ? $edit -> payment : 0,
     );
   }
   $form['departments'] = array(
@@ -130,7 +123,7 @@ function azur_emp_form($form, &$form_state, $eid = 0) {
   $form['qualification'] = array(
     '#type' => 'textfield',
     '#title' => t('Qualification'),
-    '#default_value' => isset($edit) ? $edit -> qualification : '',
+    '#default_value' => isset($edit) ? $edit -> qualification : "",
   );
   $form['enum'] = array(
     '#type' => 'textfield',
@@ -158,7 +151,7 @@ function azur_emp_form_submit($form, &$form_state) {
   $sdate = strtotime($form_state['values']['sdate']);
   $qua = $form_state['values']['qualification'];
   $enum = $form_state['values']['enum'];
-  $gid = autocomplete_get_id_func($form_state['values']['department']);
+  $gid = autocomplete_get_id_func($form_state['values']['departments']);
   $eid = $form_state['values']['eid'];
   if (!empty($eid)) {
     $del_user_from_group = db_delete('og_users_roles') -> condition('uid', $user -> uid, '=');
@@ -218,16 +211,16 @@ function azur_emp_form_submit($form, &$form_state) {
 /**
  * Address Form
  */
-function azur_emp_address_form($form, &$form_state, $eid = 0, $aid = 0) {
+function azur_emp_address_form($form, &$form_state, $eid = 0) {
   $edit = NULL;
-  if (!empty($aid)) {
+  if (!empty($eid)) {
     $query = db_select('address', 'addr') -> fields('addr');
-    $query -> condition('aid', $aid);
+    $query -> condition('eid', $eid);
     $edit = $query -> execute() -> fetchObject();
   }
   $form['aid'] = array(
     '#type' => 'hidden',
-    '#value' => $aid,
+    '#value' => $edit ->aid,
   );
   $form['eid'] = array(
     '#type' => 'hidden',
@@ -252,7 +245,7 @@ function azur_emp_address_form($form, &$form_state, $eid = 0, $aid = 0) {
 
   $form['address']['resphone'] = array(
     '#type' => 'textfield',
-    '#default_value' => isset($edit) && isset($edit -> rephone) ? $edit -> resphone : '',
+    '#default_value' => isset($edit) && isset($edit -> resphone) ? $edit -> resphone : '',
     '#title' => t('Residence No.'),
     '#maxlength' => '16',
     '#size' => 16,
@@ -449,6 +442,7 @@ function azur_emp_address_form_submit($form, &$form_state) {
     );
     $eid = db_insert('address') -> fields($values) -> execute();
   }
+	drupal_goto("home");
 }
 
 /**
@@ -496,14 +490,14 @@ function azur_user_return_employee() {
  */
 function groups_generate_autocomplete($string = '') {
   $matches = array();
-  $query = db_select('node', 'n') -> fields('c', array(
+  $query = db_select('node', 'n') -> fields('n', array(
     'nid',
     'title'
-  )) -> condition('n.title', '%' . db_like($string) . '%', 'LIKE');
-  $query -> condition('n.type', 'depatments', 'LIKE');
+  )) -> condition('n.title', '%' . db_like($string 	) . '%', 'LIKE');
+  $query -> condition('n.type', 'departments', 'LIKE');
   $res = $query -> execute();
   foreach ($res as $row) {
-    $matches[$row -> title . " [Id:$row->tid]"] = check_plain($row -> title);
+    $matches[$row -> title . " [Id:$row->nid]"] = check_plain($row -> title);
   }
   return drupal_json_output($matches);
 }

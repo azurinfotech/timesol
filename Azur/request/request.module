@@ -259,15 +259,16 @@ function approve_reject_request($action, $rid) {
   else if ($action == 'reject') {
     db_update('request') -> fields(array('rstatus' => 2)) -> condition('rid', $rid, '=') -> execute();
   }
+  drupal_goto("request");
 }
 
 function requests_home() {
   $employee = azur_user_return_employee();
-  $output = '<div class ="metro metro-responsive-tiles panorama" "><div class="panorama-sections"><div class="panorama-section tile-span-2" >';
+  $output = '<div class ="metro metro-responsive-tiles panorama" "><div class="panorama-sections"><div class="panorama-section tile-span-3" >';
   $output .= '<a class="tile imagetext bg-color-azur activity-row square" href="send/request">Add requests</a>';
-  $output .= '<a class="tile imagetext bg-color-azur activity-row square" href="all/' . $employee -> eid . '/requests">Requests Summary</a>';
   $output .= '<a class="tile imagetext bg-color-azur activity-row square" href="your/' . $employee -> eid . '/requests">Your requests</a>';
   $output .= '<a class="tile imagetext bg-color-azur activity-row square" href="assignedto/' . $employee -> eid . '/requests">Requests assigned to you</a>';
   $output .= '</div></div>';
   return $output;
 }
+
