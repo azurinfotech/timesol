@@ -125,12 +125,12 @@ function azur_emp_form($form, &$form_state, $eid = 0) {
     '#title' => t('Qualification'),
     '#default_value' => isset($edit) ? $edit -> qualification : "",
   );
-  $form['enum'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Employee Number'),
-    '#default_value' => isset($edit) ? $edit -> enum : '',
-    '#maxlength' => '96',
-  );
+  // $form['enum'] = array(
+    // '#type' => 'textfield',
+    // '#title' => t('Employee Number'),
+    // '#default_value' => isset($edit) ? $edit -> enum : '',
+    // '#maxlength' => '96',
+  // );
   $form['submit'] = array(
     '#type' => 'submit',
     '#attributes' => array('class' => array('emp_save')),
