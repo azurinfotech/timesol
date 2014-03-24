@@ -177,7 +177,7 @@ function azur_emp_update_4() {
   ));
   
 }
-function azur_emp_update_7(){
+function azur_emp_update_11(){
 	$add = array(
     'type' => 'int',
     'not null' => FALSE,

@@ -18,7 +18,7 @@ function request_permission() {
  */
 function request_menu() {
   $items['send/request'] = array(
-    'title' => 'Request',
+    'title' => 'Add Request',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('request_form'),
     'access arguments' => array(CONST_PERM_REQUEST),
@@ -136,6 +136,7 @@ function request_type($typ = '') {
       1 => t('Project'),
       2 => t('Time'),
       3 => t('Reimbursement'),
+      4 => t('Time-off')
     );
   }
   if (empty($typ)) {
@@ -259,7 +260,7 @@ function approve_reject_request($action, $rid) {
   else if ($action == 'reject') {
     db_update('request') -> fields(array('rstatus' => 2)) -> condition('rid', $rid, '=') -> execute();
   }
-  drupal_goto("request");
+  drupal_goto('request');
 }
 
 function requests_home() {

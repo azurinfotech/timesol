@@ -12,7 +12,7 @@ function timesol_schema() {
 // Employee Clock IN/OUT Table
  function _timesol_emp_ClockIn(&$schema)
  {
- 	$schema['empClkIn']= array(
+ 	$schema['empclkin']= array(
     'description' => 'Clock time of an employee',
     'fields' => array(
       'cid' => array(
@@ -96,7 +96,7 @@ function timesol_update_1() {
     'unsigned' => TRUE,
     'description' => 'Flag' ,
   );
-  db_add_field('empClkIn', 'flag', $flag);
+  db_add_field('empclkin', 'flag', $flag);
 }
 /**
  * drops price_dr table.
