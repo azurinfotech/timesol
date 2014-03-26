@@ -1,0 +1,4 @@
+name = bid_management
+description = "bid_management module"
+package = Azur
+core = 7.x

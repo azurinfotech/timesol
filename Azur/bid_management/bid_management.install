@@ -1,0 +1,121 @@
+<?php
+
+function bid_management_schema() {
+  $schema = array();
+  bid_management_table($schema);
+  return $schema;
+}
+ function bid_management_table(&$schema)
+ {
+ 	$schema['bid_management']= array(
+    'description' => 'bid_management',
+    'fields' => array(
+      'bid' => array(
+        'type' => 'serial',
+        'description' => 'This is the primary key of the table',
+      ),
+      'prosp_name' => array(
+        'type' => 'varchar',
+        'length' => 256,
+         'description' => 'name of the prospect',
+      ),
+      'opp_desc' => array(
+        'type' => 'text',
+        'size' => 'medium',
+        'description' => 'Oppurtunity Description',
+      ),
+      'value' => array(
+        'type' => 'varchar',
+        'length' => 256,
+        'description' => 'Money value',
+      ),
+      'horizontal' => array(
+        'type' => 'int',
+        'description' => 'horizontal',
+      ),
+      'sel_criteria' => array(
+        'type' => 'text',
+        'size' => 'medium',
+        'description' => 'selection criteria',
+      ),
+      'competition' => array(
+        'type' => 'text',
+        'size' => 'medium',
+        'description' => 'competition',
+      ),
+      'opp_iss_date' => array(
+        'type' => 'int',
+        'description' => 'oppurtunity issue date',
+      ),
+      'resp_due_date' => array(
+        'type' => 'int',
+        'description' => 'response due date',
+      ),
+      'sales_owner' => array(
+        'type' => 'int',
+        'description' => 'sales owner',
+      ),
+      'delivery_bid_owner' => array(
+        'type' => 'int',
+        'description' => 'delivery bid owner',
+      ),
+      'win_the' => array(
+        'type' => 'text',
+        'size' => 'medium',
+        'description' => 'win themes',
+      ),
+    'industry' => array(
+    'type' => 'int',
+    'not null' => FALSE,
+    'unsigned' => TRUE,
+    'description' => "Industry",
+     ),
+   'bid_status' => array(
+    'type' => 'int',
+    'not null' => FALSE,
+    'unsigned' => TRUE,
+    'description' => "Bid Status",
+     ),
+   'core_team' => array(
+     'type' => 'varchar',
+    'length' => 256,
+     'description' => 'core_team',
+      ),
+     ),
+    'primary key' => array('bid'),
+     );
+}
+function bid_management_update_1(){
+	$industry = array(
+    'type' => 'int',
+    'not null' => FALSE,
+    'unsigned' => TRUE,
+    'description' => "Industry",
+  );
+  db_add_field('bid_management', 'industry', $industry);
+  
+  $bid_status = array(
+    'type' => 'int',
+    'not null' => FALSE,
+    'unsigned' => TRUE,
+    'description' => "Bid Status",
+  );
+  db_add_field('bid_management', 'bid_status', $bid_status);
+  
+}
+function bid_management_update_2(){
+	$indus = array(
+   'type' => 'varchar',
+   'length' => 256,
+    'description' => "Other Industry",
+  );
+  db_add_field('bid_management', 'industry_others', $indus);
+}
+function bid_management_update_3(){
+	$hothers = array(
+   'type' => 'varchar',
+   'length' => 256,
+    'description' => "Other Horizontal Srvices",
+  );
+  db_add_field('bid_management', 'horiz_other', $hothers);
+}
