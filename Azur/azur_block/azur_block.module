@@ -418,10 +418,10 @@ function employee_generate_request_data($eid) {
   $result = $squery -> condition($or) -> range(0, 4) -> execute();
   foreach ($result as $row) {
     if ($row -> eid == $eid) {
-      $rows[] = array('description' => t('You created a new request on ') . date('d/m/y', $row -> sdate));
+      $rows[] = array('description' => t('You created a new'. l('request','your/'.$eid.'/requests').' on ') . date('d/m/y', $row -> sdate));
     }
     else {
-      $rows[] = array('description' => t('A request has been assigned to you on ') . date('d/m/y', $row -> sdate));
+      $rows[] = array('description' => t('A request has been'.l(' assigned to you','assignedto/'.$eid.'/requests').' on ') . date('d/m/y', $row -> sdate));
     }
   }
   return $rows;

@@ -79,7 +79,7 @@ function _request_views_data(&$data) {
       'handler' => 'views_handler_field_azur_static',
       'click sortable' => TRUE,
     ),
-    'filter' => array('handler' => 'views_handler_filter_string', ),
+    'filter' => array('handler' => 'views_handler_filter', ),
     'sort' => array('handler' => 'views_handler_sort', ),
   ); 
   $data['request']['sdate'] = array(

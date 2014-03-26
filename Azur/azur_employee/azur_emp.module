@@ -98,7 +98,7 @@ function azur_emp_form($form, &$form_state, $eid = 0) {
     '#maxlength' => '64',
     '#required' => TRUE,
   );
-  if (in_array('intranet_admin', $user -> roles) || in_array('administrator', $user -> roles)) {
+  if (in_array('Intranet Admin', $user -> roles) || in_array('administrator', $user -> roles)) {
     $form['mgr_id'] = array(
       '#type' => 'textfield',
       '#title' => t('Manager'),
@@ -145,6 +145,16 @@ function azur_emp_form($form, &$form_state, $eid = 0) {
   );
 
   return $form;
+}
+
+/**
+ * Validate function for the form.
+ */
+function azur_emp_form_validate($form, &$form_state) {
+  $value_id = autocomplete_get_id_func($form_state['values']['departments']);
+  if (is_null($value_id)) {
+    form_set_error('departments', t('Invalid option. No matching department'));
+  }
 }
 
 /**
@@ -208,7 +218,7 @@ function azur_emp_form_submit($form, &$form_state) {
     $og -> language = 'en';
     $og -> save();
   }
-    drupal_goto('employee/address/'.$eid.'/0');
+  drupal_goto('employee/address/' . $eid . '/0');
 }
 
 /**
@@ -459,21 +469,6 @@ function azur_emp_views_api() {
     'path' => drupal_get_path('module', 'azur_emp') . '/views',
   );
 }
-
-/**
- * Organic group function for departments
- */
-// function departments_og() {
-// $squery = db_select('og_membership', 'og');
-// $squery -> fields('og', array(
-// 'etid',
-// 'gid'
-// ));
-// $result = $squery -> co -> execute() -> fetchAllKeyed();
-// dpm($result);
-// return $result;
-// }
-
 /**
  * function to return the Employee from the user
  */

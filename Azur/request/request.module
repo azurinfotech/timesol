@@ -151,14 +151,14 @@ function request_type($typ = '') {
 }
 
 /**
- * employee status
+ * Request status
  */
 function request_status($sta = '') {
   static $stat;
   if (!isset($stat)) {
     $stat = array(
-      1 => t('Approved'),
       0 => t('Pending'),
+      1 => t('Approved'),
       2 => t('Rejected')
     );
   }
@@ -272,4 +272,3 @@ function requests_home() {
   $output .= '</div></div>';
   return $output;
 }
-
