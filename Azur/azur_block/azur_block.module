@@ -12,6 +12,10 @@ function azur_block_block_info() {
     'info' => t('Recennt Activity'),
     'cache' => DRUPAL_NO_CACHE
   );
+	$block['bid_manage'] = array(
+	'info' => t('Bid Management'),
+	'cache' => DRUPAL_NO_CACHE
+	);
   return $block;
 }
 
@@ -34,6 +38,12 @@ function azur_block_block_view($delta = '') {
         'content' => recent_activity_block_generate()
       );
       break;
+		case 'bid_manage':
+			$block = array(
+			'subject' => t(''),
+			'content' =>'<div class="btn">'.l('Generate Bid','add/bid').'</div>',
+			);
+			break;
   }
   return $block;
 }
