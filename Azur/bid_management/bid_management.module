@@ -109,10 +109,7 @@ function bid_management_form($form, &$form_state, $bid = 0) {
     '#type' => 'hidden',
     '#value' => $edit,
   );
-  $form['eid'] = array(
-    '#type' => 'hidden',
-    '#value' => $edit,
-  );
+  
 
   return $form;
 
@@ -278,14 +275,31 @@ function bid_management_views_api() {
 }
 
 function bid_management_form_submit($form, &$form_state) {
+  $horiz_other = 0;
+  $horizon_tid = 0;
   $current_step = &$form_state['step'];
   $final_values = array();
   $form_state['step_information'][$current_step]['stored_values'] = $form_state['values'];
   foreach ($form_state['step_information'] as $key => $value) {
-    dpm($value);
     foreach ($value['stored_values'] as $index => $val) {
-      if ($index != 'form_build_id' && $index != 'form_token' && $index != 'form_id' && $index != 'next' && $index != 'prev') {
-        $final_values[$index] = !empty($val[$index]) ? $val[$index] : '';
+      if ($index != 'form_build_id' && $index != 'form_token' && $index != 'form_id' && $index != 'next' && $index != 'prev' && $index != 'submit' && $index != 'op'){
+      	 $final_values[$index] = !empty($value[$index]) ? $value[$index] :'';
+      	if($index == 'bid' && $val == NULL){
+      		 $final_values[$index] = !empty($val[$index]) ? $val[$index]:0;
+			unset($final_values[$index]);
+      	}
+		if($index == 'sales_owner' || $index == 'delivery_bid_owner' || $index == 'core_team'){
+			if(strpos($val,',')){
+				$split = explode(',',$val);
+				for($i =0; $i<count($split); $i++){
+					$split[$i] = autocomplete_get_id_func($split[$i]);
+				}
+				$final_values[$index] = implode(',',$split);
+			}
+			else{
+				$final_values[$index] = autocomplete_get_id_func($val);
+			}
+		}
       }
       if ($index == 'industry' && $val[$index]) {
         $taxo = new stdClass;
@@ -299,7 +313,7 @@ function bid_management_form_submit($form, &$form_state) {
       }
       if ($index == 'horizontal' && $val[$index] == 0) {
         $taxo = new stdClass;
-        $taxo -> vid = azur_get_taxonomy_terms('horizontal', 0, NULL, 1);
+        $taxo -> vid = azur_get_taxonomy_terms('horizontals', 0, NULL, 1);
         $taxo -> name = $horiz_other;
         $horizon_tid = db_insert('taxonomy_term_data') -> fields(array(
           'vid' => $taxo -> vid,
@@ -309,13 +323,39 @@ function bid_management_form_submit($form, &$form_state) {
       }
     }
   }
-  if ($final_values['bid'] != 0) {
+  if (isset($final_values['bid'])) {
     $updated = db_update('bid_management') -> fields($final_values) -> condition('bid', $bid, '=') -> execute();
   }
   else {
     $bid = db_insert('bid_management') -> fields($final_values) -> execute();
   }
+//USER Email.
+ foreach ($final_values['core_team'] as $eid) {
+ 	$user = employee_return_user_details($eid);
+
+ $message = ' You have been added to the core team for BID';
+ $params = array(
+           'body' => $message,
+           'subject' => 'BID Management Request',
+           'headers'=>'simple',
+     );
+     $to = $user ->mail;
+	 $site_email = variable_get('site_mail', '');
+    drupal_mail('bid_management', 'bid_created', $to, language_default(), $params,$site_email, TRUE);
+ }
 }
+
+function bid_management_mail($key,&$message,$params) 
+{
+
+       switch ($key) {
+             case 'bid_created':
+                  $message['subject']=t($params['subject']);
+                  $message['body'][]=$params['body'];
+                  $message['headers']['Content-Type'] = 'text';
+       break;
+          }
+ }
 
 //Horizontal types
 function horizontal_type($typ = '') {

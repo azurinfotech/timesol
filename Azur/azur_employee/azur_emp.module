@@ -491,6 +491,7 @@ function azur_user_return_employee() {
   ));
   $query -> condition('uid', $user -> uid, '=');
   $result = $query -> execute() -> fetchObject();
+  $result -> uid = $user -> uid;
   return $result;
 }
 
@@ -529,4 +530,12 @@ function azur_employee_get_manager_id($eid) {
   $squery = db_select('employee', 'emp');
   $squery -> fields('emp', array('mgr_id'));
   $mgr_id = $squery -> condition('eid', $eid, '=') -> execute() -> fetchField();
+}
+function employee_return_user_details($eid){
+	$squery = db_select('employee','e');
+	$squery -> innerJoin('users','u','u.uid = e.uid');
+	$squery ->fields('u');
+	$squery ->condition('eid',$eid,'=');
+	$user_details = $squery -> execute() -> fetchObject();
+	return $user_details;
 }
