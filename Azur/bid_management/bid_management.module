@@ -105,11 +105,16 @@ function bid_management_form($form, &$form_state, $bid = 0) {
   if (function_exists($form_state['step_information'][$step]['form'] . '_validate')) {
     $form['next']['#validate'] = array($form_state['step_information'][$step]['form'] . '_validate');
   }
+	$path = url(drupal_get_path('module', 'bid_management') . '/avatar.png', array('absolute' => TRUE));
+	$form['help_text'] = array(
+    '#type' => 'item',
+    '#markup' => t('Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+	Vivamus et iaculis purus, et interdum diam. Aliquam in ornare risus. Fusce pretium sagittis pulvinar.' . '<div><img src="' . $path . '" style="padding-top:20px;"/></div>')
+  );
   $form['bid'] = array(
     '#type' => 'hidden',
     '#value' => $edit,
   );
-  
 
   return $form;
 
@@ -127,8 +132,14 @@ function bid_wizard_step_1($form, &$form_state) {
 
 function bid_wizard_step_2($form, &$form_state) {
   $form = array();
+	$path = url(drupal_get_path('module', 'bid_management') . '/avatar.png', array('absolute' => TRUE));
   $industry_options = azur_get_taxonomy_terms('industries', 0, NULL);
   $industry_options[0] = t('Others');
+  $form['help_text'] = array(
+    '#type' => 'item',
+    '#markup' => t('Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+	Vivamus et iaculis purus, et interdum diam. Aliquam in ornare risus. Fusce pretium sagittis pulvinar.' . '<div><img src="' . $path . '" style="padding-top:20px;"/></div>')
+  );
   $form['industry'] = array(
     '#type' => 'select',
     '#title' => t('Industry'),
@@ -166,8 +177,14 @@ function bid_wizard_step_2($form, &$form_state) {
 
 function bid_wizard_step_3($form, &$form_state) {
   $form = array();
+	$path = url(drupal_get_path('module', 'bid_management') . '/avatar.png', array('absolute' => TRUE));
   $horizontal_options = azur_get_taxonomy_terms('horizontals', 0, NULL);
   $horizontal_options[0] = t('Others');
+  $form['help_text'] = array(
+    '#type' => 'item',
+    '#markup' => t('Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+	Vivamus et iaculis purus, et interdum diam. Aliquam in ornare risus. Fusce pretium sagittis pulvinar.' . '<div><img src="' . $path . '" style="padding-top:20px;"/></div>')
+  );
   $form['horizontal'] = array(
     '#type' => 'select',
     '#title' => t('horizontal'),
@@ -209,6 +226,12 @@ function bid_wizard_step_3($form, &$form_state) {
 
 function bid_wizard_step_4($form, &$form_state) {
   $form = array();
+	$path = url(drupal_get_path('module', 'bid_management') . '/avatar.png', array('absolute' => TRUE));
+  $form['help_text'] = array(
+    '#type' => 'item',
+    '#markup' => t('Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
+	Vivamus et iaculis purus, et interdum diam. Aliquam in ornare risus. Fusce pretium sagittis pulvinar.' . '<div><img src="' . $path . '" style="padding-top:20px;"/></div>')
+  );
   $form['sales_owner'] = array(
     '#type' => 'textfield',
     '#title' => t('Sales Owner'),
@@ -282,24 +305,24 @@ function bid_management_form_submit($form, &$form_state) {
   $form_state['step_information'][$current_step]['stored_values'] = $form_state['values'];
   foreach ($form_state['step_information'] as $key => $value) {
     foreach ($value['stored_values'] as $index => $val) {
-      if ($index != 'form_build_id' && $index != 'form_token' && $index != 'form_id' && $index != 'next' && $index != 'prev' && $index != 'submit' && $index != 'op'){
-      	 $final_values[$index] = !empty($value[$index]) ? $value[$index] :'';
-      	if($index == 'bid' && $val == NULL){
-      		 $final_values[$index] = !empty($val[$index]) ? $val[$index]:0;
-			unset($final_values[$index]);
-      	}
-		if($index == 'sales_owner' || $index == 'delivery_bid_owner' || $index == 'core_team'){
-			if(strpos($val,',')){
-				$split = explode(',',$val);
-				for($i =0; $i<count($split); $i++){
-					$split[$i] = autocomplete_get_id_func($split[$i]);
-				}
-				$final_values[$index] = implode(',',$split);
-			}
-			else{
-				$final_values[$index] = autocomplete_get_id_func($val);
-			}
-		}
+      if ($index != 'form_build_id' && $index != 'form_token' && $index != 'form_id' && $index != 'next' && $index != 'prev' && $index != 'submit' && $index != 'op') {
+        $final_values[$index] = !empty($value[$index]) ? $value[$index] : '';
+        if ($index == 'bid' && $val == NULL) {
+          $final_values[$index] = !empty($val[$index]) ? $val[$index] : 0;
+          unset($final_values[$index]);
+        }
+        if ($index == 'sales_owner' || $index == 'delivery_bid_owner' || $index == 'core_team') {
+          if (strpos($val, ',')) {
+            $split = explode(',', $val);
+            for ($i = 0; $i < count($split); $i++) {
+              $split[$i] = autocomplete_get_id_func($split[$i]);
+            }
+            $final_values[$index] = implode(',', $split);
+          }
+          else {
+            $final_values[$index] = autocomplete_get_id_func($val);
+          }
+        }
       }
       if ($index == 'industry' && $val[$index]) {
         $taxo = new stdClass;
@@ -329,33 +352,32 @@ function bid_management_form_submit($form, &$form_state) {
   else {
     $bid = db_insert('bid_management') -> fields($final_values) -> execute();
   }
-//USER Email.
- foreach ($final_values['core_team'] as $eid) {
- 	$user = employee_return_user_details($eid);
+  //USER Email.
+  foreach ($final_values['core_team'] as $eid) {
+    $user = employee_return_user_details($eid);
 
- $message = ' You have been added to the core team for BID';
- $params = array(
-           'body' => $message,
-           'subject' => 'BID Management Request',
-           'headers'=>'simple',
-     );
-     $to = $user ->mail;
-	 $site_email = variable_get('site_mail', '');
-    drupal_mail('bid_management', 'bid_created', $to, language_default(), $params,$site_email, TRUE);
- }
+    $message = ' You have been added to the core team for BID';
+    $params = array(
+      'body' => $message,
+      'subject' => 'BID Management Request',
+      'headers' => 'simple',
+    );
+    $to = $user -> mail;
+    $site_email = variable_get('site_mail', '');
+    drupal_mail('bid_management', 'bid_created', $to, language_default(), $params, $site_email, TRUE);
+  }
 }
 
-function bid_management_mail($key,&$message,$params) 
-{
+function bid_management_mail($key, &$message, $params) {
 
-       switch ($key) {
-             case 'bid_created':
-                  $message['subject']=t($params['subject']);
-                  $message['body'][]=$params['body'];
-                  $message['headers']['Content-Type'] = 'text';
-       break;
-          }
- }
+  switch ($key) {
+    case 'bid_created' :
+      $message['subject'] = t($params['subject']);
+      $message['body'][] = $params['body'];
+      $message['headers']['Content-Type'] = 'text';
+      break;
+  }
+}
 
 //Horizontal types
 function horizontal_type($typ = '') {
@@ -376,4 +398,23 @@ function horizontal_type($typ = '') {
   else {
     return t('Invalid Option');
   }
+}
+/**
+ * Implements hook_theme
+ */
+function bid_management_theme() {
+  return array(
+    'bid_management_form' => array(
+      'render element' => 'form',
+      'template' => 'bid-management-form'
+    ),
+    'bid_wizard_step_3' => array(
+      'render element' => 'form',
+      'template' => 'bid-wizard-step'
+    ),
+    'bid_wizard_step_4' => array(
+      'render element' => 'form',
+      'template' => 'bid-wizard-step'
+    ),
+  );
 }
