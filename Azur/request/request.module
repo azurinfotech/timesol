@@ -52,7 +52,7 @@ function request_menu() {
       1
     ),
     'access arguments' => array(CONST_PERM_ACCESS_ADMINID),
-    'type' => MENU_CALLBACK,
+    'type' => MENU_NORMAL_ITEM,
   );
   $items['reject/%/request'] = array(
     'page callback' => 'approve_reject_request',
@@ -61,7 +61,7 @@ function request_menu() {
       1
     ),
     'access arguments' => array(CONST_PERM_ACCESS_ADMINID),
-    'type' => MENU_CALLBACK,
+    'type' => MENU_NORMAL_ITEM,
   );
   return $items;
 }
@@ -81,9 +81,9 @@ function request_form($form, &$form_state, $eid = 0, $rid = 0) {
       'rtype'
     ));
     $query -> leftJoin('employee', 'e', 'e.eid = req.eid');
+		$query ->condition('og.entity_type','user','LIKE');
     $edit = $query -> condition('req.eid', $eid) -> execute() -> fetchobject();
   }
-
   $form['rid'] = array(
     '#type' => 'hidden',
     '#title' => t('Request ID'),
@@ -175,14 +175,33 @@ function request_status($sta = '') {
 
 function admin_autocomplete($string = '') {
   $matches = array();
+	$new_string =NULL;
+	$pos = strpos($string,',');
+	if($pos){
+		$sub_str = explode(',',$string);
+		$count = count($sub_str);
+		$new_string = $sub_str[$count-1];
+	}
   $query = db_select('employee', 'e') -> fields('e', array(
     'firstname',
     'lastname',
     'eid'
-  )) -> condition('e.firstname', '%' . db_like($string) . '%', 'LIKE');
+  ));
+	if($new_string == NULL){
+	$query -> condition('e.firstname', '%' . db_like($string) . '%', 'LIKE');
+	}
+	else{
+		$query -> condition('e.firstname', '%' . db_like($new_string) . '%', 'LIKE');
+	}
   $res = $query -> execute();
   foreach ($res as $row) {
+  	if($new_string == NULL){
     $matches[$row -> firstname . $row -> lastname . " [Id:$row->eid]"] = check_plain($row -> firstname . " " . $row -> lastname);
+		}
+		else{
+			
+			$matches[substr($string,0,strlen($string)- strlen($new_string)).$row -> firstname . $row -> lastname . " [Id:$row->eid]"] = check_plain($row -> firstname . " " . $row -> lastname);
+		}
   }
   return drupal_json_output($matches);
 }

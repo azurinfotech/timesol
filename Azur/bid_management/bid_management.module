@@ -12,236 +12,312 @@ function bid_management_permission() {
   );
 }
 
- function bid_management_menu(){
- 	
- $items['add/bid_manage'] = array(
- 'title' => 'Bid Management',
- 'description' => 'Bid Management',
- 'page callback' => 'drupal_get_form',
- 'access arguments' => array(TRUE),
- 'page arguments' =>array('bid_management_form'),
- 'access arguments' => array(CONST_PERM_CREATE_BID),
- 'type' => MENU_NORMAL_ITEM,
-   );
- $items['bid_manag/%/edit'] = array(
- 'title' => t('bid_management edit details'),
- 'page callback' => 'drupal_get_form',
- 'access arguments'=>TRUE,
- 'page arguments'=> array('bid_management_form',1),
- 'access arguments' => array(CONST_PERM_CREATE_BID),
- 'type'=> MENU_LOCAL_TASK,
-   );
+function bid_management_menu() {
+
+  $items['add/bid'] = array(
+    'title' => 'Bid Management',
+    'description' => 'Bid Management',
+    'page callback' => 'drupal_get_form',
+    'access arguments' => array(TRUE),
+    'page arguments' => array('bid_management_form'),
+    'access arguments' => array(CONST_PERM_CREATE_BID),
+    'type' => MENU_NORMAL_ITEM,
+  );
+  $items['bid/%/edit'] = array(
+    'title' => t('bid_management edit details'),
+    'page callback' => 'drupal_get_form',
+    'access arguments' => TRUE,
+    'page arguments' => array(
+      'bid_management_form',
+      1
+    ),
+    'access arguments' => array(CONST_PERM_CREATE_BID),
+    'type' => MENU_LOCAL_TASK,
+  );
   return $items;
- }
-  function bid_management_form($form,&$form_state,$bid = 0){
-  	$edit=NULL;
-	if($bid != 0){
-		$query = db_select('bid_management','b');
-		$squery -> innerJoin('employee', 'emp', 'emp.eid = b.sales_owner');
-		$squery -> innerJoin('employee', 'e', 'e.eid = b.delivery_bid_owner');
-		$query -> fields('b',array('prosp_name','opp_desc','value','horizontal','sel_criteria','competition','opp_iss_date','resp_due_date','sales_owner','delivery_bid_owner','win_the','core_team'));
-		$query -> condition('b.bid',$bid,'=');
-		$edit = $query ->execute() -> fetchObject();
-	}
-	 $form['industry'] = array(
+}
+
+function bid_wizard_steps() {
+  return array(
+    1 => array('form' => 'bid_wizard_step_1'),
+    2 => array('form' => 'bid_wizard_step_2'),
+    3 => array('form' => 'bid_wizard_step_3'),
+    4 => array('form' => 'bid_wizard_step_4')
+  );
+}
+
+function bid_management_form($form, &$form_state, $bid = 0) {
+  if ($bid != 0) {
+    $query = db_select('bid_management', 'b');
+    $squery -> innerJoin('employee', 'emp', 'emp.eid = b.sales_owner');
+    $squery -> innerJoin('employee', 'e', 'e.eid = b.delivery_bid_owner');
+    $query -> fields('b', array(
+      'prosp_name',
+      'opp_desc',
+      'value',
+      'horizontal',
+      'sel_criteria',
+      'competition',
+      'opp_iss_date',
+      'resp_due_date',
+      'sales_owner',
+      'delivery_bid_owner',
+      'win_the',
+      'core_team'
+    ));
+    $query -> condition('b.bid', $bid, '=');
+    $edit = $query -> execute() -> fetchObject();
+  }
+  //Step forms
+  if (empty($form_state['step'])) {
+    $form_state['step'] = 1;
+    $form_state['step_information'] = bid_wizard_steps();
+  }
+  $step = &$form_state['step'];
+  $form = $form_state['step_information'][$step]['form']($form, $form_state);
+  $edit = NULL;
+
+  if ($step > 2) {
+    $form['prev'] = array(
+      '#type' => 'submit',
+      '#value' => t('Previous'),
+      '#name' => 'prev',
+      '#submit' => array('bid_wizard_previous_submit'),
+      '#limit_validation_errors' => array(),
+    );
+  }
+
+  if ($step < count($form_state['step_information'])) {
+    // The Next button should be included on every step
+    $form['next'] = array(
+      '#type' => 'submit',
+      '#value' => t('Next'),
+      '#name' => 'next',
+      '#submit' => array('bid_wizard_next_submit'),
+    );
+  }
+  else {
+    $form['submit'] = array(
+      '#type' => 'submit',
+      '#value' => t('Save')
+    );
+  }
+  if (function_exists($form_state['step_information'][$step]['form'] . '_validate')) {
+    $form['next']['#validate'] = array($form_state['step_information'][$step]['form'] . '_validate');
+  }
+  $form['bid'] = array(
+    '#type' => 'hidden',
+    '#value' => $edit,
+  );
+  $form['eid'] = array(
+    '#type' => 'hidden',
+    '#value' => $edit,
+  );
+
+  return $form;
+
+}
+
+function bid_wizard_step_1($form, &$form_state) {
+  $form = array();
+  drupal_set_title(t('Bid Management wizard.'));
+  $form['dummy_text'] = array(
+    '#type' => 'item',
+    '#markup' => t('This is a dummy text that is filled in the bid management form'),
+  );
+  return $form;
+}
+
+function bid_wizard_step_2($form, &$form_state) {
+  $form = array();
+  $industry_options = azur_get_taxonomy_terms('industries', 0, NULL);
+  $industry_options[0] = t('Others');
+  $form['industry'] = array(
     '#type' => 'select',
     '#title' => t('Industry'),
-    '#options' => industry_type(),
-    '#default_value' => isset($edit->industry) ? $edit -> industry : '',
-     );
-	 $form['industry_others'] = array(
+    '#options' => $industry_options,
+    '#default_value' => isset($edit -> industry) ? $edit -> industry : '',
+  );
+  $form['industry_others'] = array(
     '#type' => 'textfield',
     '#title' => t('Other Industries'),
     '#maxlength' => '64',
-    '#states' => array('visible' => array(':input[name="industry"]' => array('value' => 3),),), 
-    '#default_value' => isset($edit->industry_others) ? $edit -> industry_others : '',
-     );
-  	 $form['prosp_name']=array(
-  	'#type' => 'textfield', 
-  	 '#title' => t('Prospect Name'),
-  	 '#size' =>100,
-  	 '#maxlength' =>100,
-  	 '#default_value' => isset($edit->prosp_name) ? $edit -> prosp_name : '',
-	 );
-  	 $form['opp_desc']=array(
-  	'#type' => 'textarea', 
-  	 '#title' => t('Oppurtunity description'),
-  	 '#default_value' => isset($edit->opp_desc) ? $edit -> opp_desc : '',
-	 );
-  	 $form['value']=array(
-  	'#type' => 'textfield', 
-  	 '#title' => t('Value'),
-  	 '#size' =>100,
-  	 '#maxlength' =>100,
-  	 '#default_value' => isset($edit->value) ? $edit -> value : '',
-	 );
-	 $form['horizontal']=array(
-  	'#type' => 'select', 
-  	 '#title' => t('horizontal'),
-  	 '#options' => horizontal_type(),
-  	 '#default_value' => isset($edit->horizontal) ? $edit -> horizontal : '',
-	 );
-	 $form['horiz_other']=array(
-  	'#type' => 'textfield', 
-  	 '#title' => t('Other horizontal value'),
-  	 '#states' => array('visible' => array(':input[name="horizontal"]' => array('value' => 3),),),
-  	 '#default_value' => isset($edit->horiz_other) ? $edit -> horiz_other : '',
-	 );
-	 $form['sel_criteria']=array(
-  	'#type' => 'textarea', 
-  	 '#title' => t('Selection Criteria'),
-  	 '#default_value' => isset($edit->sel_criteria) ? $edit -> sel_criteria : '',
-	 );
-	 $form['competition']=array(
-  	'#type' => 'textarea', 
-  	 '#title' => t('Competition'),
-  	 '#default_value' => isset($edit->competition) ? $edit -> competition : '',
-  	 );
-	 $form['opp_iss_date']=array(
-  	'#type' => 'date_popup',
+    '#states' => array('visible' => array(':input[name="industry"]' => array('value' => 0), ), ),
+    '#default_value' => isset($edit -> industry_others) ? $edit -> industry_others : '',
+  );
+  $form['prosp_name'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Prospect Name'),
+    '#size' => 100,
+    '#maxlength' => 100,
+    '#default_value' => isset($edit -> prosp_name) ? $edit -> prosp_name : '',
+  );
+  $form['opp_desc'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Oppurtunity description'),
+    '#default_value' => isset($edit -> opp_desc) ? $edit -> opp_desc : '',
+  );
+  $form['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Value'),
+    '#size' => 100,
+    '#maxlength' => 100,
+    '#default_value' => isset($edit -> value) ? $edit -> value : '',
+  );
+  return $form;
+}
+
+function bid_wizard_step_3($form, &$form_state) {
+  $form = array();
+  $horizontal_options = azur_get_taxonomy_terms('horizontals', 0, NULL);
+  $horizontal_options[0] = t('Others');
+  $form['horizontal'] = array(
+    '#type' => 'select',
+    '#title' => t('horizontal'),
+    '#options' => $horizontal_options,
+    '#default_value' => isset($edit -> horizontal) ? $edit -> horizontal : '',
+  );
+  $form['horiz_other'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Other horizontal value'),
+    '#states' => array('visible' => array(':input[name="horizontal"]' => array('value' => 0), ), ),
+    '#default_value' => isset($edit -> horiz_other) ? $edit -> horiz_other : '',
+  );
+  $form['sel_criteria'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Selection Criteria'),
+    '#default_value' => isset($edit -> sel_criteria) ? $edit -> sel_criteria : '',
+  );
+  $form['competition'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Competition'),
+    '#default_value' => isset($edit -> competition) ? $edit -> competition : '',
+  );
+  $form['opp_iss_date'] = array(
+    '#type' => 'date_popup',
     '#date_label_position' => 'within',
     '#title' => t('Opportunity issue date'),
-    '#default_value' => isset($edit->opp_iss_date) && !empty($edit -> opp_iss_date) ? date('Y-m-d', $edit -> opp_iss_date) : "",
+    '#default_value' => isset($edit -> opp_iss_date) && !empty($edit -> opp_iss_date) ? date('Y-m-d', $edit -> opp_iss_date) : "",
     '#date_format' => variable_get('date_format_date_only', 'd/m/Y'),
-	 );
-	 $form['resp_due_date']=array(
-  	 '#type' => 'date_popup', 
-  	 '#title' => t('Response due date'),
-  	 '#date_label_position' => 'within',
-    '#default_value' => isset($edit->resp_due_date) && !empty($edit -> resp_due_date) ? date('Y-m-d', $edit -> resp_due_date) : "",
+  );
+  $form['resp_due_date'] = array(
+    '#type' => 'date_popup',
+    '#title' => t('Response due date'),
+    '#date_label_position' => 'within',
+    '#default_value' => isset($edit -> resp_due_date) && !empty($edit -> resp_due_date) ? date('Y-m-d', $edit -> resp_due_date) : "",
     '#date_format' => variable_get('date_format_date_only', 'd/m/Y'),
-	 );
-	 $form['sales_owner']=array(
-  	'#type' => 'textfield', 
-  	 '#title' => t('Sales Owner'),
-  	 '#size' =>90,
-  	 '#required' => TRUE,
-  	 '#default_value' => isset($edit->sales_owner) ? $edit -> sales_owner : '',
-  	 '#autocomplete_path' => 'adminid/autocomplete'
-	 );
-	 $form['delivery_bid_owner']=array(
-  	'#type' => 'textfield', 
-  	 '#title' => t('Delivery Bid Owner'),
-  	 '#size' =>90,
-  	 '#required' => TRUE,
-  	 '#autocomplete_path' => 'adminid/autocomplete',
-  	 '#default_value' => isset($edit->delivery_bid_owner) ? $edit -> delivery_bid_owner : '',
-	 );
-	 $form['win_the']=array(
-  	 '#type' => 'textarea', 
-  	 '#title' => t('Win Themes'),
-  	 '#default_value' => isset($edit->win_the) ? $edit -> win_the : '',
-	 );
-	 $form['core_team']=array(
-  	'#type' => 'textfield', 
-  	 '#title' => t('Core Team'),
-  	 '#size' =>100,
-  	 '#autocomplete_path' => 'core_team/autocomplete',
-  	 '#default_value' => isset($edit->core_team) ? $edit -> core_team : '',
-	 );
-	 $form['bid']=array(
-  	'#type' => 'hidden', 
-  	'#value' => $edit,
-	 );
-	 $form['eid']= array(
-	 '#type' => 'hidden', 
-  	 '#value' => $edit,
-	 );
-	 $form['submit']=array(
-	 '#type' => 'submit',
-	 '#value'=>t('Save')
-	 );
-	 return $form;
+  );
+  return $form;
+}
 
- }
-  function bid_management_views_api() {
+function bid_wizard_step_4($form, &$form_state) {
+  $form = array();
+  $form['sales_owner'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Sales Owner'),
+    '#size' => 90,
+    '#required' => TRUE,
+    '#default_value' => isset($edit -> sales_owner) ? $edit -> sales_owner : '',
+    '#autocomplete_path' => 'adminid/autocomplete'
+  );
+  $form['delivery_bid_owner'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Delivery Bid Owner'),
+    '#size' => 90,
+    '#required' => TRUE,
+    '#autocomplete_path' => 'adminid/autocomplete',
+    '#default_value' => isset($edit -> delivery_bid_owner) ? $edit -> delivery_bid_owner : '',
+  );
+  $form['win_the'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Win Themes'),
+    '#default_value' => isset($edit -> win_the) ? $edit -> win_the : '',
+  );
+  $form['core_team'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Core Team'),
+    '#size' => 100,
+    '#autocomplete_path' => 'adminid/autocomplete',
+  );
+  return $form;
+}
+
+function bid_wizard_previous_submit($form, &$form_state) {
+  $current_step = &$form_state['step'];
+  $form_state['step_information'][$current_step]['stored_values'] = $form_state['values'];
+  if ($current_step > 1) {
+    $current_step--;
+    $form_state['values'] = $form_state['step_information'][$current_step]['stored_values'];
+  }
+  $form_state['rebuild'] = TRUE;
+}
+
+function bid_wizard_next_submit($form, &$form_state) {
+  $current_step = &$form_state['step'];
+  $form_state['step_information'][$current_step]['stored_values'] = $form_state['values'];
+
+  if ($current_step < count($form_state['step_information'])) {
+    $current_step++;
+    if (!empty($form_state['step_information'][$current_step]['stored_values'])) {
+      $form_state['values'] = $form_state['step_information'][$current_step]['stored_values'];
+    }
+    else {
+      $form_state['values'] = array();
+    }
+    $form_state['rebuild'] = TRUE;
+    // Force rebuild with next step.
+    return;
+  }
+}
+
+function bid_management_views_api() {
   return array(
     'api' => 3,
     'path' => drupal_get_path('module', 'bid_management') . '/views',
   );
 }
-  function bid_management_form_submit($form,&$form_state){
-	$bid = $form_state['values']['bid'];
-	$industry = $form_state['values']['industry'];
-	$industry_others = $form_state['values']['industry_others'];
-	$prosp_name = $form_state['values']['prosp_name'];
-    $opp_desc = $form_state['values']['opp_desc'];
-    $value = $form_state['values']['value'];
-    $horizontal = $form_state['values']['horizontal'];
-	$horiz_other = $form_state['values']['horiz_other'];
-    $sel_criteria = $form_state['values']['sel_criteria'];
-    $competition = $form_state['values']['competition'];
-    $opp_iss_date = strtotime($form_state['values']['opp_iss_date']);
-    $resp_due_date = strtotime($form_state['values']['resp_due_date']);
-    $sales_owner = autocomplete_get_id_func($form_state['values']['sales_owner']);
-    $delivery_bid_owner = autocomplete_get_id_func($form_state['values']['delivery_bid_owner']);
-    $win_the = $form_state['values']['win_the'];
-    $core_team = $form_state['values']['core_team'];
-		
-  	if ($bid != 0) {
-    $updated = db_update('bid_management') -> fields(array(
-      'bid'=>$bid,
-      'industry'=>$industry,
-      'industry_others' => $industry_others,
-      'prosp_name' => $prosp_name,
-      'opp_desc' =>  $opp_desc,
-      'value' => $value,
-      'horizontal' => $horizontal,
-      'horiz_other'=>$horiz_other,
-      'sel_criteria' => $sel_criteria,
-      'competition' => $competition,
-      'opp_iss_date' => $opp_iss_date,
-     // 'resp_due_date' => $resp_due_date,
-      'sales_owner'=> $sales_owner,
-      'delivery_bid_owner' => $delivery_bid_owner,
-      'win_the' => $win_the,
-      'core_team' => $core_team,
-    )) -> condition('bid', $bid, '=') -> execute();
+
+function bid_management_form_submit($form, &$form_state) {
+  $current_step = &$form_state['step'];
+  $final_values = array();
+  $form_state['step_information'][$current_step]['stored_values'] = $form_state['values'];
+  foreach ($form_state['step_information'] as $key => $value) {
+    dpm($value);
+    foreach ($value['stored_values'] as $index => $val) {
+      if ($index != 'form_build_id' && $index != 'form_token' && $index != 'form_id' && $index != 'next' && $index != 'prev') {
+        $final_values[$index] = !empty($val[$index]) ? $val[$index] : '';
+      }
+      if ($index == 'industry' && $val[$index]) {
+        $taxo = new stdClass;
+        $taxo -> vid = azur_get_taxonomy_terms('industries', 0, NULL, 1);
+        $taxo -> name = $horiz_other;
+        $indus_tid = db_insert('taxonomy_term_data') -> fields(array(
+          'vid' => $taxo -> vid,
+          'name' => $taxo -> name
+        )) -> execute();
+        $final_values['industry'] = $horizon_tid;
+      }
+      if ($index == 'horizontal' && $val[$index] == 0) {
+        $taxo = new stdClass;
+        $taxo -> vid = azur_get_taxonomy_terms('horizontal', 0, NULL, 1);
+        $taxo -> name = $horiz_other;
+        $horizon_tid = db_insert('taxonomy_term_data') -> fields(array(
+          'vid' => $taxo -> vid,
+          'name' => $taxo -> name
+        )) -> execute();
+        $final_values['horizontal'] = $horizon_tid;
+      }
+    }
+  }
+  if ($final_values['bid'] != 0) {
+    $updated = db_update('bid_management') -> fields($final_values) -> condition('bid', $bid, '=') -> execute();
   }
   else {
-    $values = array(
-      'bid'=>$bid,
-      'industry'=>$industry,
-      'industry_others' => $industry_others,
-      'prosp_name' => $prosp_name,
-      'opp_desc' =>  $opp_desc,
-      'value' => $value,
-      'horizontal' => $horizontal,
-      'horiz_other'=>$horiz_other,
-      'sel_criteria' => $sel_criteria,
-      'competition' => $competition,
-      'opp_iss_date' => $opp_iss_date,
-     // 'resp_due_date' => $resp_due_date,
-      'sales_owner'=> $sales_owner,
-      'delivery_bid_owner' => $delivery_bid_owner,
-      'win_the' => $win_the,
-      'core_team' => $core_team,
-    );
-    $bid = db_insert('bid_management') -> fields($values) -> execute();
-  }
-  }
-    
-    //Types of Industries
-function industry_type($typ = '') {
-  static $types;
-  if (!isset($types)) {
-    $types = array(
-      1 => t('IT Software'),
-      2 => t('IT Harware'),
-      3 => t('Others'),
-    );
-  }
-  if (empty($typ)) {
-    return $types;
-  }
-  elseif (isset($types[$typ])) {
-    return $types[$typ];
-  }
-  else {
-    return t('Invalid Option');
+    $bid = db_insert('bid_management') -> fields($final_values) -> execute();
   }
 }
-  //Horizontal types
+
+//Horizontal types
 function horizontal_type($typ = '') {
   static $types;
   if (!isset($types)) {

@@ -64,6 +64,9 @@ function azur_emp_form($form, &$form_state, $eid = 0) {
   if ($eid != 0) {
     $squery = db_select('employee', 'e');
     $squery -> leftJoin('address', 'addr', 'addr.eid = e.eid');
+    $query -> leftJoin('og_membership', 'og', 'og.etid = e.eid');
+    $query -> innerJoin('node', 'n', 'n.nid = og.gid');
+    $query -> fields('n', array('title','nid'));
     $squery -> fields('addr', array('aid'));
     $squery -> fields('e', array(
       'firstname',
@@ -117,7 +120,8 @@ function azur_emp_form($form, &$form_state, $eid = 0) {
     '#type' => 'textfield',
     '#title' => t('Department'),
     '#description' => t('Enter the department.'),
-    '#autocomplete_path' => 'groups/autocomplete'
+    '#autocomplete_path' => 'groups/autocomplete',
+    '#default_value' => isset($edit->title) ?$edit -> title.'[Id:'.$edit -> nid.']': 0
   );
   $form['type'] = array(
     '#type' => 'select',
@@ -350,8 +354,12 @@ function azur_emp_address_form($form, &$form_state, $eid = 0, $aid = 0) {
 /**
  * Country Hierarchy Taxonomy
  */
-function azur_get_taxonomy_terms($var, $parent, $depth) {
+function azur_get_taxonomy_terms($var, $parent, $depth, $get_vid = 0) {
+  $terms = array();
   $vocabs = taxonomy_vocabulary_get_names();
+  if ($get_vid) {
+    return $vocabs[$var] -> vid;
+  }
   $tree = taxonomy_get_tree($vocabs[$var] -> vid, $parent, $depth);
   foreach ($tree as $value) {
     $terms[$value -> tid] = $value -> name;
@@ -469,6 +477,7 @@ function azur_emp_views_api() {
     'path' => drupal_get_path('module', 'azur_emp') . '/views',
   );
 }
+
 /**
  * function to return the Employee from the user
  */
