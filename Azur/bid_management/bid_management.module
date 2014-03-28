@@ -15,8 +15,8 @@ function bid_management_permission() {
 function bid_management_menu() {
 
   $items['add/bid'] = array(
-    'title' => 'Bid Management',
-    'description' => 'Bid Management',
+    'title' => 'Caerus online system',
+    'description' => 'Caerus online system',
     'page callback' => 'drupal_get_form',
     'access arguments' => array(TRUE),
     'page arguments' => array('bid_management_form'),
@@ -42,7 +42,8 @@ function bid_wizard_steps() {
     1 => array('form' => 'bid_wizard_step_1'),
     2 => array('form' => 'bid_wizard_step_2'),
     3 => array('form' => 'bid_wizard_step_3'),
-    4 => array('form' => 'bid_wizard_step_4')
+    4 => array('form' => 'bid_wizard_step_4'),
+    5 => array('form' => 'bid_wizard_step_5')
   );
 }
 
@@ -105,12 +106,6 @@ function bid_management_form($form, &$form_state, $bid = 0) {
   if (function_exists($form_state['step_information'][$step]['form'] . '_validate')) {
     $form['next']['#validate'] = array($form_state['step_information'][$step]['form'] . '_validate');
   }
-	$path = url(drupal_get_path('module', 'bid_management') . '/avatar.png', array('absolute' => TRUE));
-	$form['help_text'] = array(
-    '#type' => 'item',
-    '#markup' => t('Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-	Vivamus et iaculis purus, et interdum diam. Aliquam in ornare risus. Fusce pretium sagittis pulvinar.' . '<div><img src="' . $path . '" style="padding-top:20px;"/></div>')
-  );
   $form['bid'] = array(
     '#type' => 'hidden',
     '#value' => $edit,
@@ -122,23 +117,60 @@ function bid_management_form($form, &$form_state, $bid = 0) {
 
 function bid_wizard_step_1($form, &$form_state) {
   $form = array();
-  drupal_set_title(t('Bid Management wizard.'));
+	  $path = url(drupal_get_path('module', 'bid_management') . '/scando.jpg', array('absolute' => TRUE));
+  $form['help_text'] = array(
+    '#type' => 'item',
+    '#markup' => t('<div><img src="' . $path . '" style="padding-top:20px;width:200px;height:292px;"/></div>')
+  );
   $form['dummy_text'] = array(
     '#type' => 'item',
-    '#markup' => t('This is a dummy text that is filled in the bid management form'),
+    '#markup' => t("<p>Welcome to Caerus, Azurs online system for logging in your opportunities and launching the process of orchestrating a winning response 
+    backed by the Azur Touch. Named after the Greek God of opportunity, luck and favorable moments,
+     it is the due measure that achieves the aim. Caerus will ensure that we approach every opportunity with a thoughtful
+      and disciplined approach and involve the best talent thus increasing our chances of winning RFIs and RFPs.</p>
+<p>Caerus. A habit of winning opportunities.</p>"),
   );
   return $form;
 }
 
 function bid_wizard_step_2($form, &$form_state) {
   $form = array();
-	$path = url(drupal_get_path('module', 'bid_management') . '/avatar.png', array('absolute' => TRUE));
+  $path = url(drupal_get_path('module', 'bid_management') . '/wildoo.jpg', array('absolute' => TRUE));
   $industry_options = azur_get_taxonomy_terms('industries', 0, NULL);
   $industry_options[0] = t('Others');
+  $form['progress'] = array(
+    '#type' => 'item',
+    '#markup' => '<div id="progress-wrapper">
+  <div id="progress-value" style="width:33%; display:block;background-color:#0080FF;"></div>
+   <div id="progress-value" style="width:33%; display:block;position:relative;top:-28px;left:33.33333%"></div>
+    <div id="progress-value" style="width:33.555%; display:block;position:relative;top:-56px;left:66.6666666666%"></div>
+</div>'
+  );
   $form['help_text'] = array(
     '#type' => 'item',
-    '#markup' => t('Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-	Vivamus et iaculis purus, et interdum diam. Aliquam in ornare risus. Fusce pretium sagittis pulvinar.' . '<div><img src="' . $path . '" style="padding-top:20px;"/></div>')
+    '#markup' => '<div><img src="' . $path . '" style="padding-top:20px;width:200px;height:292px;"/></div><p>'
+    .t('Provide information pertaining to this opportunity like which company issued it, specific area and the potential deal size. State which business unit (horizontal) within Azur will own it.
+.') . '</p>'
+  );
+  $form['prosp_name'] = array(
+    '#type' => 'textfield',
+    '#title' => '<div class="color-number">1</div>'.t('<b> Prospect Name</b>'),
+    '#description' => t('Enter the prospect name here'),
+    '#size' => 100,
+    '#maxlength' => 100,
+    '#default_value' => isset($edit -> prosp_name) ? $edit -> prosp_name : '',
+  );
+  $form['opp_desc'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Oppurtunity description'),
+    '#default_value' => isset($edit -> opp_desc) ? $edit -> opp_desc : '',
+  );
+  $form['value'] = array(
+    '#type' => 'textfield',
+    '#title' => t('Value(in $MM)'),
+    '#size' => 10,
+    '#maxlength' => 10,
+    '#default_value' => isset($edit -> value) ? $edit -> value : '',
   );
   $form['industry'] = array(
     '#type' => 'select',
@@ -153,59 +185,72 @@ function bid_wizard_step_2($form, &$form_state) {
     '#states' => array('visible' => array(':input[name="industry"]' => array('value' => 0), ), ),
     '#default_value' => isset($edit -> industry_others) ? $edit -> industry_others : '',
   );
-  $form['prosp_name'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Prospect Name'),
-    '#size' => 100,
-    '#maxlength' => 100,
-    '#default_value' => isset($edit -> prosp_name) ? $edit -> prosp_name : '',
+  $path = url(drupal_get_path('module', 'bid_management') . '/avatar.png', array('absolute' => TRUE));
+  $horizontal_options = azur_get_taxonomy_terms('horizontals', 0, NULL);
+  $horizontal_options[0] = t('Others');
+  $form['horizontal'] = array(
+    '#type' => 'select',
+    '#title' => t('Horizontals'),
+    '#options' => $horizontal_options,
+    '#default_value' => isset($edit -> horizontal) ? $edit -> horizontal : '',
   );
-  $form['opp_desc'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Oppurtunity description'),
-    '#default_value' => isset($edit -> opp_desc) ? $edit -> opp_desc : '',
-  );
-  $form['value'] = array(
+  $form['horiz_other'] = array(
     '#type' => 'textfield',
-    '#title' => t('Value'),
-    '#size' => 100,
-    '#maxlength' => 100,
-    '#default_value' => isset($edit -> value) ? $edit -> value : '',
+    '#title' => t('Other horizontals'),
+    '#states' => array('visible' => array(':input[name="horizontal"]' => array('value' => 0), ), ),
+    '#default_value' => isset($edit -> horiz_other) ? $edit -> horiz_other : '',
   );
   return $form;
 }
 
 function bid_wizard_step_3($form, &$form_state) {
   $form = array();
-	$path = url(drupal_get_path('module', 'bid_management') . '/avatar.png', array('absolute' => TRUE));
-  $horizontal_options = azur_get_taxonomy_terms('horizontals', 0, NULL);
-  $horizontal_options[0] = t('Others');
+  $form['progress'] = array(
+    '#type' => 'item',
+    '#markup' => '<div id="progress-wrapper">
+  <div id="progress-value" style="width:33%; display:block;background-color:#0080FF;"></div>
+   <div id="progress-value" style="width:33%; display:block;position:relative;top:-28px;left:33.33333%;background-color:#0080FF;"></div>
+    <div id="progress-value" style="width:33.555%; display:block;position:relative;top:-56px;left:66.6666666666%"></div>
+</div>'
+  );
+  $path = url(drupal_get_path('module', 'bid_management') . '/outadbox.jpg', array('absolute' => TRUE));
   $form['help_text'] = array(
     '#type' => 'item',
-    '#markup' => t('Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-	Vivamus et iaculis purus, et interdum diam. Aliquam in ornare risus. Fusce pretium sagittis pulvinar.' . '<div><img src="' . $path . '" style="padding-top:20px;"/></div>')
-  );
-  $form['horizontal'] = array(
-    '#type' => 'select',
-    '#title' => t('horizontal'),
-    '#options' => $horizontal_options,
-    '#default_value' => isset($edit -> horizontal) ? $edit -> horizontal : '',
-  );
-  $form['horiz_other'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Other horizontal value'),
-    '#states' => array('visible' => array(':input[name="horizontal"]' => array('value' => 0), ), ),
-    '#default_value' => isset($edit -> horiz_other) ? $edit -> horiz_other : '',
+    '#markup' => t('List the criteria based on which they will select the vendor and the competition. What does Azur needs to emphasize upon to win.
+' . '<div><img src="' . $path . '" style="padding-top:20px;width:200px;height:292px;"/></div>')
   );
   $form['sel_criteria'] = array(
     '#type' => 'textarea',
-    '#title' => t('Selection Criteria'),
+    '#title' =>'<div class="color-number">1</div>'. t('Selection Criteria'),
     '#default_value' => isset($edit -> sel_criteria) ? $edit -> sel_criteria : '',
+  );
+  $form['win_the'] = array(
+    '#type' => 'textarea',
+    '#title' => t('Win Themes'),
+    '#default_value' => isset($edit -> win_the) ? $edit -> win_the : '',
   );
   $form['competition'] = array(
     '#type' => 'textarea',
     '#title' => t('Competition'),
     '#default_value' => isset($edit -> competition) ? $edit -> competition : '',
+  );
+  return $form;
+}
+
+function bid_wizard_step_4($form, &$form_state) {
+  $form = array();
+  $form['progress'] = array(
+    '#type' => 'item',
+    '#markup' => '<div id="progress-wrapper">
+  <div id="progress-value" style="width:33%; display:block;background-color:#0080FF;"></div>
+   <div id="progress-value" style="width:33%; display:block;position:relative;top:-28px;left:33.33333%;background-color:#0080FF;"></div>
+    <div id="progress-value" style="width:33.555%; display:block;position:relative;top:-56px;left:66.66%;background-color:#0080FF;"></div>
+</div>'
+  );
+  $path = url(drupal_get_path('module', 'bid_management') . '/ynot.jpg', array('absolute' => TRUE));
+  $form['help_text'] = array(
+    '#type' => 'item',
+    '#markup' => t('Provide details on the response due dates and the owners from sales and delivery. Also identity who will constitute the core bid team' . '<div><img src="' . $path . '" style="padding-top:20px;width:200px;height:292px;"/></div>')
   );
   $form['opp_iss_date'] = array(
     '#type' => 'date_popup',
@@ -220,17 +265,6 @@ function bid_wizard_step_3($form, &$form_state) {
     '#date_label_position' => 'within',
     '#default_value' => isset($edit -> resp_due_date) && !empty($edit -> resp_due_date) ? date('Y-m-d', $edit -> resp_due_date) : "",
     '#date_format' => variable_get('date_format_date_only', 'd/m/Y'),
-  );
-  return $form;
-}
-
-function bid_wizard_step_4($form, &$form_state) {
-  $form = array();
-	$path = url(drupal_get_path('module', 'bid_management') . '/avatar.png', array('absolute' => TRUE));
-  $form['help_text'] = array(
-    '#type' => 'item',
-    '#markup' => t('Lorem ipsum dolor sit amet, consectetur adipiscing elit. 
-	Vivamus et iaculis purus, et interdum diam. Aliquam in ornare risus. Fusce pretium sagittis pulvinar.' . '<div><img src="' . $path . '" style="padding-top:20px;"/></div>')
   );
   $form['sales_owner'] = array(
     '#type' => 'textfield',
@@ -248,11 +282,7 @@ function bid_wizard_step_4($form, &$form_state) {
     '#autocomplete_path' => 'adminid/autocomplete',
     '#default_value' => isset($edit -> delivery_bid_owner) ? $edit -> delivery_bid_owner : '',
   );
-  $form['win_the'] = array(
-    '#type' => 'textarea',
-    '#title' => t('Win Themes'),
-    '#default_value' => isset($edit -> win_the) ? $edit -> win_the : '',
-  );
+
   $form['core_team'] = array(
     '#type' => 'textfield',
     '#title' => t('Core Team'),
@@ -260,6 +290,19 @@ function bid_wizard_step_4($form, &$form_state) {
     '#autocomplete_path' => 'adminid/autocomplete',
   );
   return $form;
+}
+
+function bid_wizard_step_5($form, &$form_state) {
+  $form['progress'] = array(
+    '#type' => 'item',
+    '#markup' => '<div id="progress-wrapper">
+  <div id="progress-value" style="width:95%; display:block;"></div>
+</div>'
+  );
+  $form['thank_you_page'] = array(
+    '#type' => 'item',
+    '#markup' => t('Thank You ') . $form_state['step_information'][4]['stored_values']['sales_owner'] . '<div>Prospect name:' . $form_state['step_information'][1]['stored_values']['prosp_name'] . '</div><div>Oppurtunity description:' . $form_state['step_information'][1]['stored_values']['opp_desc'] . '</div><div> Oppurtunity issue date' . $form_state['step_information'][3]['stored_values']['opp_iss_date'] . '</div><div>Oppurtunity due date' . $form_state['step_information'][3]['stored_values']['resp_due_date'] . '</div><div>Thank You</div>'
+  );
 }
 
 function bid_wizard_previous_submit($form, &$form_state) {
@@ -399,6 +442,7 @@ function horizontal_type($typ = '') {
     return t('Invalid Option');
   }
 }
+
 /**
  * Implements hook_theme
  */
