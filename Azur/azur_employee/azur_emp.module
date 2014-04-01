@@ -105,7 +105,7 @@ function azur_emp_form($form, &$form_state, $eid = 0) {
     $form['mgr_id'] = array(
       '#type' => 'textfield',
       '#title' => t('Manager'),
-      '#default_value' => isset($edit -> mgr_id) ? azur_employee_name($edit -> mgr_id) : '',
+      '#default_value' => isset($edit -> mgr_id) ? azur_employee_name($edit -> mgr_id).'[Id:'.$edit ->mgr_id.']' : '',
       '#autocomplete_path' => 'adminid/autocomplete',
       '#required' => TRUE,
     );
@@ -246,7 +246,7 @@ function azur_emp_address_form($form, &$form_state, $eid = 0, $aid = 0) {
 
   $form['address'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Address'),
+    '#title' => t('Contact-details'),
   );
 
   $form['address']['phone'] = array(
@@ -530,6 +530,7 @@ function azur_employee_get_manager_id($eid) {
   $squery = db_select('employee', 'emp');
   $squery -> fields('emp', array('mgr_id'));
   $mgr_id = $squery -> condition('eid', $eid, '=') -> execute() -> fetchField();
+  return $mgr_id;
 }
 function employee_return_user_details($eid){
 	$squery = db_select('employee','e');

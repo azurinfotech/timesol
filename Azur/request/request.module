@@ -96,7 +96,7 @@ function request_form($form, &$form_state, $eid = 0, $rid = 0) {
   );
   $form['adid'] = array(
     '#type' => 'textfield',
-    '#title' => t('Admin Id'),
+    '#title' => t('Assign to.'),
     '#required' => TRUE,
     '#autocomplete_path' => 'adminid/autocomplete',
     '#defalut_value' => isset($edit) ? $edit -> adid : ''
@@ -107,19 +107,20 @@ function request_form($form, &$form_state, $eid = 0, $rid = 0) {
     '#description' => t('Enter a summary for the request.'),
     '#default_value' => isset($edit) ? $edit -> descp : ''
   );
-  $form['fid'] = array(
-    '#type' => 'managed_file',
-    '#title' => t('File ID'),
-    '#description' => t('Upload a file, allowed extensions: jpg, jpeg, png, gif'),
-    '#upload_validators' => array('file_validate_extensions' => array('jpg jpeg png gif'), ),
-    '#upload_location' => 'public://docs/',
-  );
   $form['rtype'] = array(
     '#type' => 'select',
     '#title' => t('Type of request'),
     '#options' => request_type(),
     '#default_value' => isset($edit) ? $edit -> rtype : '',
   );
+    $form['fid'] = array(
+        '#type' => 'managed_file',
+        '#title' => t('File ID'),
+        '#description' => t('Upload a file, allowed extensions: jpg, jpeg, png, gif'),
+        '#upload_validators' => array('file_validate_extensions' => array('jpg jpeg png gif'), ),
+        '#upload_location' => 'public://docs/',
+        '#state' => array(':visible' =>  array(':input[name="rtype"]' => array('value' => 4)))
+    );
   $form['submit'] = array(
     '#type' => 'submit',
     '#attributes' => array('class' => array('emp_save')),
@@ -128,6 +129,19 @@ function request_form($form, &$form_state, $eid = 0, $rid = 0) {
   return $form;
 }
 
+/**
+ * @param string $typ
+ * @return array|null|string
+ */
+function request_form_validate($form,&$form_state){
+    if(!strpos($form_state['values']['adid'],':')){
+    form_set_error('adid',t('Please enter a valid person to assign the request to.'));
+}
+   $mgr_id = autocomplete_get_id_func($form_state['values']['adid']);
+    if($form_state['values']['eid'] == $mgr_id ){
+        form_set_error('adid',t('You cannot assign a request to yourself.'));
+    }
+}
 //Type of Request
 function request_type($typ = '') {
   static $types;
@@ -157,9 +171,9 @@ function request_status($sta = '') {
   static $stat;
   if (!isset($stat)) {
     $stat = array(
-      0 => t('Pending'),
-      1 => t('Approved'),
-      2 => t('Rejected')
+      1 => t('Pending'),
+      2 => t('Approved'),
+      3 => t('Rejected')
     );
   }
   if (empty($sta)) {
@@ -229,7 +243,7 @@ function request_form_submit($form, &$form_state) {
       'eid' => $emp -> eid,
       'fid' => $form_state['values']['fid'],
       'sdate' => time(),
-      'rstatus' => 0,
+      'rstatus' => 1,
       'rtype' => $form_state['values']['rtype'],
       'descp' => $form_state['values']['description'],
       'adid' => autocomplete_get_id_func($form_state['values']['adid']),
@@ -240,13 +254,16 @@ function request_form_submit($form, &$form_state) {
     $rid = $form_state['values']['rid'];
     $updated = db_update('request') -> fields(array(
       'fid' => $form_state['values']['fid'],
-      'rstatus' => 0,
+      'rstatus' => 1,
       'adid' => autocomplete_get_id_func($form_state['values']['adid']),
       'rtype' => $form_state['values']['rtype'],
       'descp' => $form_state['values']['description'],
     )) -> condition('rid', $rid, '=') -> execute();
   }
-
+    $mgr = explode($form_state['values']['adid'],'[');
+    $message = t('Your request has been created and assigned to :mgr',array(':mgr' => $mgr));
+    drupal_set_message($message);
+drupal_goto('created-requests');
 }
 
 /**
@@ -274,12 +291,20 @@ function request_views_api() {
  */
 function approve_reject_request($action, $rid) {
   if ($action == 'approve') {
-    db_update('request') -> fields(array('rstatus' => 1)) -> condition('rid', $rid, '=') -> execute();
+    db_update('request') -> fields(array('rstatus' => 2)) -> condition('rid', $rid, '=') -> execute();
+      $request = db_select('request','req') ->fields('req',array('eid','rtype','sdate')) -> execute() -> fetchObject();
+      $employee = azur_employee_name($request -> eid);
+      $type = request_type($request -> rtype);
+      drupal_set_message(t('The :request created by :employee on :created was approved by you',array(':request' => $type,':employee' => $employee,':created' => date('M/d/Y',$request -> sdate))));
   }
   else if ($action == 'reject') {
-    db_update('request') -> fields(array('rstatus' => 2)) -> condition('rid', $rid, '=') -> execute();
+    db_update('request') -> fields(array('rstatus' => 3)) -> condition('rid', $rid, '=') -> execute();
+      $request = db_select('request','req') ->fields('req',array('eid','rtype','sdate')) -> execute() -> fetchObject();
+      $employee = azur_employee_name($request -> eid);
+      $type = request_type($request -> rtype);
+      drupal_set_message(t('The :request created by :employee on :created was rejected by you',array(':request' => $type,':employee' => $employee,':created' => date('M/d/Y',$request -> sdate))));
   }
-  drupal_goto('request');
+  drupal_goto('created-requests');
 }
 
 function requests_home() {

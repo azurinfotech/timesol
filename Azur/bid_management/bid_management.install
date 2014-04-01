@@ -103,19 +103,13 @@ function bid_management_update_1(){
   db_add_field('bid_management', 'bid_status', $bid_status);
   
 }
-function bid_management_update_2(){
-	$indus = array(
-   'type' => 'varchar',
-   'length' => 256,
-    'description' => "Other Industry",
-  );
-  db_add_field('bid_management', 'industry_others', $indus);
-}
-function bid_management_update_3(){
-	$hothers = array(
-   'type' => 'varchar',
-   'length' => 256,
-    'description' => "Other Horizontal Srvices",
-  );
-  db_add_field('bid_management', 'horiz_other', $hothers);
+function bid_management_update_5(){
+    $industry = array(
+        'type' => 'text',
+        'size' => 'medium',
+        'not null' => FALSE,
+        'unsigned' => TRUE,
+        'description' => "Business Drivers",
+    );
+    db_add_field('bid_management', 'bis_drivers', $industry);
 }

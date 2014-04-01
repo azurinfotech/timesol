@@ -7,7 +7,8 @@ class views_handler_field_azur_static extends views_handler_field {
     $this -> static_options = array(
       1 => t('Type of Employee'),
       2 => t('Employee Request'),
-      3 => t('Employee Id')
+      3 => t('Employee Id'),
+        4 => t('Type of request')
       );
   }
 
@@ -51,7 +52,11 @@ class views_handler_field_azur_static extends views_handler_field {
 				
 		case 3 :
         $output = azur_employee_name($value);
-        break;				
+        break;
+
+        case 4:
+            $output = request_type($value);
+            break;
     }
     return $output;
   }

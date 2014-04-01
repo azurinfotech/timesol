@@ -41,11 +41,17 @@ function timesol_schema() {
          'description' => 'clock out time of an employee',
       ),
       'pid' => array(
-        'type' => 'int',
-        'not null' => FALSE,
-        'unsigned' => TRUE,
-        'description' => 'Project ID of an employee',
-      ),
+            'type' => 'int',
+            'not null' => FALSE,
+            'unsigned' => TRUE,
+            'description' => 'Project ID of an employee',
+        ),
+        'lunch_check' => array(
+            'type' => 'int',
+            'not null' => FALSE,
+            'unsigned' => TRUE,
+            'description' => 'Employee lunch information',
+        ),
     ),
     'primary key' => array('cid'),
     'indexes' => array(
@@ -114,3 +120,12 @@ function timesol_update_4() {
 	 db_drop_table('empTimeoff');
   }
 }
+ function timesol_update_50() {
+     $lunch = array(
+         'type' => 'int',
+         'not null' => FALSE,
+         'unsigned' => TRUE,
+         'description' => 'Flag' ,
+     );
+     db_add_field('empclkin', 'lunch_check', $lunch);
+ }

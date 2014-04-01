@@ -5,475 +5,523 @@ define('CONST_PROJECT_AUTOCOMPLETE', 'access auto complete');
 /**
  * Implements hook_permission().
  */
-function timesol_permission() {
-  return array(
-    CONST_EMPLOYEE_CLOCKOUT => array('title' => t('Employee Clock out')),
-    CONST_PROJECT_AUTOCOMPLETE => array('title' => t('Access project auto complete')),
-  );
+function timesol_permission()
+{
+    return array(
+        CONST_EMPLOYEE_CLOCKOUT => array('title' => t('Employee Clock out')),
+        CONST_PROJECT_AUTOCOMPLETE => array('title' => t('Access project auto complete')),
+    );
 }
 
 /**
  * Implements hook_menu
  */
-function timesol_menu() {
-  $items = array();
-  $items['timesol/clockout/%'] = array(
-    'title' => t('Clock Out'),
-    'description' => 'A form to fill the Clock out details',
-    'page callback' => 'drupal_get_form',
-    'access arguments' => array(CONST_EMPLOYEE_CLOCKOUT),
-    'page arguments' => array(
-      'timesol_clockout_details_form',
-      2
-    ),
-    'type' => MENU_NORMAL_ITEM,
-  );
-  $items['timesol/project'] = array(
-    'page callback' => 'timesol_project_autocomplete',
-    'access arguments' => array(CONST_PROJECT_AUTOCOMPLETE),
-    'type' => MENU_CALLBACK,
-  );
-  return $items;
+function timesol_menu()
+{
+    $items = array();
+    $items['timesol/clockout/%'] = array(
+        'title' => t('Clock Out'),
+        'description' => 'A form to fill the Clock out details',
+        'page callback' => 'drupal_get_form',
+        'access arguments' => array(CONST_EMPLOYEE_CLOCKOUT),
+        'page arguments' => array(
+            'timesol_clockout_details_form',
+            2
+        ),
+        'type' => MENU_NORMAL_ITEM,
+    );
+    $items['timesol/project'] = array(
+        'page callback' => 'timesol_project_autocomplete',
+        'access arguments' => array(CONST_PROJECT_AUTOCOMPLETE),
+        'type' => MENU_CALLBACK,
+    );
+    return $items;
 }
 
 /**
  * Implements hook_block_info
  */
-function timesol_block_info() {
-  $block = array();
-  $block['timesol_clockin'] = array(
-    'info' => t('A Block where the users can Clock-in and Clock-out'),
-    'cache' => DRUPAL_NO_CACHE
-  );
-  return $block;
+function timesol_block_info()
+{
+    $block = array();
+    $block['timesol_clockin'] = array(
+        'info' => t('A Block where the users can Clock-in and Clock-out'),
+        'cache' => DRUPAL_NO_CACHE
+    );
+    return $block;
 }
 
 /**
  * Implements hook_block_view
  */
-function timesol_block_view($delta = '') {
-  $block = array();
-  switch ($delta) {
-    case 'timesol_clockin' :
-      $employee = azur_user_return_employee();
-      if (!empty($employee)) {
-        $emp_status = timesol_return_user_status($employee -> eid);
-        $block['subject'] = t('');
-        if (!$emp_status) {
-          $block['content'] = drupal_get_form('timesol_clockin_form');
-        }
-        else {
-          $block['content'] = drupal_get_form('timesol_clockout_form');
-        }
-      }
-      break;
+function timesol_block_view($delta = '')
+{
+    $block = array();
+    switch ($delta) {
+        case 'timesol_clockin' :
+            $employee = azur_user_return_employee();
+            if (!empty($employee)) {
+                $emp_status = timesol_return_user_status($employee->eid);
+                $block['subject'] = t('');
+                if (!$emp_status) {
+                    $form = drupal_get_form('timesol_clockin_form');
+                    $block['content'] = '<div class="metro"><div class="tile square imagetext" style="padding:30px;">' .drupal_render($form).'</div></div>';
+                } else {
+                    $form = drupal_get_form('timesol_clockout_form');
+                    $block['content'] = '<div class="metro"><div class="tile square imagetext" style="padding:30px;">' .drupal_render($form).'</div></div>';
+                }
+            }
+            break;
 
-    default :
-      break;
-  }
-  return $block;
+        default :
+            break;
+    }
+    return $block;
 }
 
-function timesol_return_user_status($eid) {
-  $query = db_select('empclkin', 'cin');
-  $query -> fields('cin', array('cid'));
-  $query -> condition('eid', $eid, '=');
-  $query -> isNull('clkout');
-  $query -> orderBy('cin.cid', 'DESC');
-  $result = $query -> execute() -> fetchField();
-  if ($result == NULL) {
-    return 0;
-  }
-  else {
-    return 1;
-  }
+function timesol_return_user_status($eid)
+{
+    $query = db_select('empclkin', 'cin');
+    $query->fields('cin', array('cid'));
+    $query->condition('eid', $eid, '=');
+    $query->isNull('clkout');
+    $query->orderBy('cin.cid', 'DESC');
+    $result = $query->execute()->fetchField();
+    if ($result == NULL) {
+        return 0;
+    } else {
+        return 1;
+    }
 }
 
 /**
  * Implements hook_form. Clock In form
  */
-function timesol_clockin_form($form, &$form_state) {
-  $employee = azur_user_return_employee();
-  $form['eid'] = array(
-    '#type' => 'hidden',
-    '#value' => $employee -> eid,
-  );
-  $form['heading'] = array(
-    '#type' => 'item',
-    '#markup' => '<div class="block_emp_name"><h4>Welcome back ' . $employee -> firstname . '!</h4></div>',
-  );
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Clock In'),
-  );
-  return $form;
+function timesol_clockin_form($form, &$form_state)
+{
+    $employee = azur_user_return_employee();
+    $form['eid'] = array(
+        '#type' => 'hidden',
+        '#value' => $employee->eid,
+    );
+    $form['heading'] = array(
+        '#type' => 'item',
+        '#markup' => '<div class="block_emp_name"><h4>Welcome back ' . $employee->firstname . '!</h4></div>',
+    );
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Clock In'),
+    );
+    return $form;
 }
 
 /**
  * Implements hook_form_submit. Submit function for the Clock in form
  */
-function timesol_clockin_form_submit($form, &$form_state) {
-  $values = array(
-    'eid' => $form_state['values']['eid'],
-    'clkin' => time(),
-    'flag' => 0
-  );
-  $query = db_insert('empclkin') -> fields($values) -> execute();
+function timesol_clockin_form_submit($form, &$form_state)
+{
+    $values = array(
+        'eid' => $form_state['values']['eid'],
+        'clkin' => time(),
+        'flag' => 0
+    );
+    $query = db_insert('empclkin')->fields($values)->execute();
+    drupal_set_message(t('You have sucessfully clocked in'));
 }
 
 /**
  * Implements hook_form
  *
  */
-function timesol_clockout_form($form, &$form_state) {
-  $employee = azur_user_return_employee();
-  $squery = db_select('empclkin', 'clk');
-  $squery -> fields('clk', array(
-    'eid',
-    'clkin'
-  ));
-  $squery -> condition('eid', $employee -> eid, '=');
-  $squery -> isNull('clkout');
-  $result = $squery -> execute() -> fetchObject();
-  $form['eid'] = array(
-    '#type' => 'hidden',
-    '#value' => $employee -> eid
-  );
-  $form['details'] = array(
-    '#type' => 'item',
-    '#markup' => '<div class ="block_emp_clkin"><h4>Last Clock In ' . date('H:i a', $result -> clkin) . '</h4></div>'
-  );
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Clock Out'),
-  );
-  return $form;
+function timesol_clockout_form($form, &$form_state)
+{
+    $employee = azur_user_return_employee();
+    $squery = db_select('empclkin', 'clk');
+    $squery->fields('clk', array(
+        'eid',
+        'clkin'
+    ));
+    $squery->condition('eid', $employee->eid, '=');
+    $squery->isNull('clkout');
+    $result = $squery->execute()->fetchObject();
+    $form['eid'] = array(
+        '#type' => 'hidden',
+        '#value' => $employee->eid
+    );
+    $form['details'] = array(
+        '#type' => 'item',
+        '#markup' => '<div class ="block_emp_clkin"><h4>Last Clock In ' . date('H:i a', $result->clkin) . '</h4></div>'
+    );
+    $form['lunch_check'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('lunch'),
+        '#options' => array('lunch'),
+    );
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Clock Out'),
+    );
+    return $form;
 }
 
 /**
  * Implement hook_form_submit. Submit function for the clock out form
  */
-function timesol_clockout_form_submit($form, &$form_state) {
-  drupal_goto('timesol/clockout/' . $form_state['values']['eid']);
+function timesol_clockout_form_submit($form, &$form_state)
+{
+    drupal_goto('timesol/clockout/' . $form_state['values']['eid']);
 }
 
 /**
  * Implements hook_form. The form submitting all the details during the clock out.
  */
-function timesol_clockout_details_form($form, &$form_state, $eid) {
-  $empclkin = timesol_return_clockin_time_status($eid);
-  $flag = $empclkin -> flag;
-  $form['eid'] = array(
-    '#type' => 'hidden',
-    '#value' => $eid,
-  );
-  $form['flag'] = array(
-    '#type' => 'hidden',
-    '#value' => $flag,
-  );
-  $form['clkin'] = array(
-    '#type' => 'hidden',
-    '#value' => $empclkin -> clkin,
-  );
-  $form['multiple'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Multiple projects'),
-    '#description' => t('Check this if you were working on multiple projects.'),
-  );
-  $form['multi_number'] = array(
-    '#type' => 'select',
-    '#description' => t('Enter the number of projects that you worked on today'),
-    '#name' => 'multi',
-    '#options' => array(
-      2 => '2',
-      3 => '3',
-      4 => '4',
-      5 => '5'
-    ),
-    '#ajax' => array(
-      'event' => 'change',
-      'callback' => 'timesol_clockout_form_ajax',
-      'wrapper' => 'timesol_proj',
-    ),
-    '#states' => array('visible' => array(':input[name="multiple"]' => array('checked' => TRUE))),
-  );
-  $form['multi_projects'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Projects'),
-    '#prefix' => '<div id="timesol_proj">',
-    '#suffix' => '</div>',
-    '#states' => array('visible' => array(':input[name="multiple"]' => array('checked' => TRUE))),
-  );
-  $num_items = !empty($form_state['input']['multi']) ? $form_state['input']['multi'] : 2;
-  for ($i = 0; $i < $num_items; $i++) {
-    $form['multi_projects']['new_project_' . $i] = array(
-      '#type' => 'checkbox',
-      '#title' => t('New project'),
-      '#description' => t('Check this box if it is new project that you want to create'),
+function timesol_clockout_details_form($form, &$form_state, $eid)
+{
+    $empclkin = timesol_return_clockin_time_status($eid);
+    $flag = $empclkin->flag;
+    $form['eid'] = array(
+        '#type' => 'hidden',
+        '#value' => $eid,
     );
-    $form['multi_projects']['project_name_' . $i] = array(
-      '#type' => 'textfield',
-      '#title' => t('Title'),
-      '#description' => t('Enter the project name'),
-      '#autocomplete_path' => 'timesol/project',
-      '#states' => array('visible' => array(':input[name="new_project_' . $i . '"]' => array('checked' => FALSE)))
+    $form['flag'] = array(
+        '#type' => 'hidden',
+        '#value' => $flag,
     );
-    $form['multi_projects']['project_create_' . $i] = array(
-      '#type' => 'textfield',
-      '#title' => t('Project title'),
-      '#description' => t('Enter the new project title'),
-      '#states' => array('visible' => array(':input[name="new_project_' . $i . '"]' => array('checked' => TRUE)))
+    $form['clkin'] = array(
+        '#type' => 'hidden',
+        '#value' => $empclkin->clkin,
     );
-    $form['multi_projects']['project_time_' . $i] = array(
-      '#type' => 'date_popup',
-      '#date_label_position' => 'within',
-      '#title' => t('Project time'),
-      '#description' => t('Enter the number of hours that you worked on this project'),
-      '#default_value' => '',
-      '#date_format' => variable_get('date_format_date_only', 'H:i'),
+    $form['multiple'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Multiple projects'),
+        '#description' => t('Check this if you were working on multiple projects.'),
     );
-  }
-  $form['single_project'] = array(
-    '#type' => 'fieldset',
-    '#title' => t('Project Details'),
-    '#states' => array('visible' => array(':input[name="multiple"]' => array('checked' => FALSE))),
-  );
-  $form['single_project']['project_details'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Project Title'),
-    '#description' => t('Enter your project title'),
-    '#autocomplete_path' => 'timesol/project'
-  );
-  if ($flag) {
-    $form['single_project']['project_time'] = array(
-      '#type' => 'date_popup',
-      '#date_label_position' => 'within',
-      '#title' => t('Project time'),
-      '#description' => t('Enter the number of hours that you worked on this project'),
-      '#default_value' => '',
-      '#date_format' => variable_get('date_format_date_only', 'H:i'),
+    $form['multi_number'] = array(
+        '#type' => 'select',
+        '#description' => t('Enter the number of projects that you worked on today'),
+        '#name' => 'multi',
+        '#options' => array(
+            2 => '2',
+            3 => '3',
+            4 => '4',
+            5 => '5'
+        ),
+        '#ajax' => array(
+            'event' => 'change',
+            'callback' => 'timesol_clockout_form_ajax',
+            'wrapper' => 'timesol_proj',
+        ),
+        '#states' => array('visible' => array(':input[name="multiple"]' => array('checked' => TRUE))),
     );
-  }
-  $form['single_project']['new_project'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('New project'),
-    '#description' => t('Check this box if it is new project that you want to create'),
-  );
-  $form['single_project']['project_create'] = array(
-    '#type' => 'textfield',
-    '#title' => t('Project title'),
-    '#description' => t('Enter the new project title'),
-    '#description' => t('Enter the new project title'),
-    '#states' => array('visible' => array(':input[name="new_project"]' => array('checked' => TRUE))),
-  );
-  $form['submit'] = array(
-    '#type' => 'submit',
-    '#value' => t('Submit'),
-  );
-  return $form;
+    $form['multi_projects'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Projects'),
+        '#prefix' => '<div id="timesol_proj">',
+        '#suffix' => '</div>',
+        '#states' => array('visible' => array(':input[name="multiple"]' => array('checked' => TRUE))),
+    );
+    $num_items = !empty($form_state['input']['multi']) ? $form_state['input']['multi'] : 2;
+    for ($i = 0; $i < $num_items; $i++) {
+        $form['multi_projects']['new_project_' . $i] = array(
+            '#type' => 'checkbox',
+            '#title' => t('New project'),
+            '#description' => t('Check this box if it is new project that you want to create'),
+        );
+        $form['multi_projects']['project_name_' . $i] = array(
+            '#type' => 'textfield',
+            '#title' => t('Title'),
+            '#description' => t('Enter the project name'),
+            '#autocomplete_path' => 'timesol/project',
+            '#states' => array('visible' => array(':input[name="new_project_' . $i . '"]' => array('checked' => FALSE)))
+        );
+        $form['multi_projects']['project_create_' . $i] = array(
+            '#type' => 'textfield',
+            '#title' => t('Project title'),
+            '#description' => t('Enter the new project title'),
+            '#states' => array('visible' => array(':input[name="new_project_' . $i . '"]' => array('checked' => TRUE)))
+        );
+        $form['multi_projects']['project_time_' . $i] = array(
+            '#type' => 'date_popup',
+            '#date_label_position' => 'within',
+            '#title' => t('Project time'),
+            '#description' => t('Enter the number of hours that you worked on this project'),
+            '#default_value' => '',
+            '#date_format' => variable_get('date_format_date_only', 'H:i'),
+        );
+    }
+    $form['single_project'] = array(
+        '#type' => 'fieldset',
+        '#title' => t('Project Details'),
+        '#states' => array('visible' => array(':input[name="multiple"]' => array('checked' => FALSE))),
+    );
+    $form['single_project']['project_details'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Project Title'),
+        '#description' => t('Enter your project title'),
+        '#autocomplete_path' => 'timesol/project'
+    );
+    if ($flag) {
+        $form['single_project']['project_time'] = array(
+            '#type' => 'date_popup',
+            '#date_label_position' => 'within',
+            '#title' => t('Project time'),
+            '#description' => t('Enter the number of hours that you worked on this project'),
+            '#default_value' => '',
+            '#date_format' => variable_get('date_format_date_only', 'H:i'),
+        );
+    }
+    $form['single_project']['new_project'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('New project'),
+        '#description' => t('Check this box if it is new project that you want to create'),
+    );
+    $form['single_project']['project_create'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Project title'),
+        '#description' => t('Enter the new project title'),
+        '#states' => array('visible' => array(':input[name="new_project"]' => array('checked' => TRUE))),
+    );
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Submit'),
+    );
+    return $form;
 }
 
 /**
  * function to get the vid of a taxonomy vocabulary
  */
-function taxonomy_vocabulary_get_vid($name) {
-  $vocabs = taxonomy_vocabulary_get_names();
-  return $vocabs[$name] -> vid;
+function taxonomy_vocabulary_get_vid($name)
+{
+    $vocabs = taxonomy_vocabulary_get_names();
+    return $vocabs[$name]->vid;
+}
+
+/**
+ * Implements hook_form_validate
+ */
+function timesol_clockout_details_form_validate($form, &$form_state)
+{
+    if ($form_state['values']['multiple'] == 0) {
+        if ($form_state['values']['new_project'] != 1 && !strpos($form_state['values']['project_details'],'[')) {
+            form_set_error('project_details', t('Enter a valid project name for clock out.'));
+        }
+    } else {
+        for ($i = 0; $i < $form_state['input']['multi']; $i++) {
+               if($form_state['values']['new_project_'.$i] == 0 && !strpos($form_state['values']['project_name_'.$i],'[')){
+                               form_set_error('project_details_'.$i,t('Enter a valid project name for clock out.'));
+               }
+        }
+    }
 }
 
 /**
  * Implements hook_form_submit
  */
-function timesol_clockout_details_form_submit($form, &$form_state) {
-  $flag = $form_state['values']['flag'];
-  $mgr = azur_employee_get_manager_id($form_state['values']['eid']);
-  if ($form_state['values']['multiple'] == 0) {
-    $pid = 0;
-    $new_flag = 0;
-    if ($form_state['values']['new_project'] == 1) {
-      $vid = taxonomy_vocabulary_get_vid('projects');
-      $term = new stdClass;
-      $term -> vid = $vid;
-      $term -> name = $form_state['values']['project_create'];
-      taxonomy_term_save($term);
-      $squery = db_select('taxonomy_term_data', 'taxo');
-      $squery -> fields('taxo', array('tid'));
-      $squery -> condition('name', $form_state['values']['project_create'], 'like');
-      $result = $squery -> execute() -> fetchField();
-      $pid = $result;
-      $new_flag += 1;
+function timesol_clockout_details_form_submit($form, &$form_state)
+{
+    $flag = $form_state['values']['flag'];
+    $mgr = azur_employee_get_manager_id($form_state['values']['eid']);
+    if ($form_state['values']['multiple'] == 0) {
+        $pid = NULL;
+        $new_flag = 0;
+        if ($form_state['values']['new_project'] == 1) {
+            $vid = taxonomy_vocabulary_get_vid('projects');
+            $term = new stdClass;
+            $term->vid = $vid;
+            $term->name = $form_state['values']['project_create'];
+            taxonomy_term_save($term);
+            $squery = db_select('taxonomy_term_data', 'taxo');
+            $squery->fields('taxo', array('tid'));
+            $squery->condition('name', $form_state['values']['project_create'], 'like');
+            $result = $squery->execute()->fetchField();
+            $pid = $result;
+            $new_flag += 1;
+        }
+        $pid = !is_null($form_state['values']['project_details']) ? $pid : autocomplete_get_id_func($form_state['values']['project_details']);
+        if ($flag) {
+            $inquery = db_insert('request')->fields(array(
+                'eid' => $form_state['values']['eid'],
+                'fid' => 0,
+                'sdate' => time(),
+                'rstatus' => 1,
+                'rtype' => 2,
+                'adid' => !is_null($mgr)? $mgr : 0,
+                'descp' => t('This is a clock out request for the date:' . $form_state['values']['clkin'] . ' Project: ' . $form_state['values']['project_details'])
+            ))->execute();
+            $upquery = db_update('empclkin')->fields(array(
+                'clkout' => $form_state['values']['clkin']+strtotime($form_state['values']['project_time']),
+                'pid' => $pid,
+                'flag' => $flag + ($new_flag * 2)
+            )) ->execute();
+            $upquery->isNull('clkout')->condition('eid', $form_state['values']['eid'], '=')->execute();
+        } else {
+            $upquery = db_update('empclkin')->fields(array(
+                'clkout' => time(),
+                'pid' => $pid,
+                'flag' => $flag + ($new_flag * 2)
+            ))->isNull('clkout')->condition('eid', $form_state['values']['eid'], '=')->execute();
+        }
+    } else {
+        $values = array();
+        $clkin = $form_state['values']['clkin'];
+        for ($i = 0; $i < $form_state['input']['multi']; $i++) {
+            $new_flag = 0;
+            if ($form_state['values']['new_project_' . $i] == 1) {
+                $vid = taxonomy_vocabulary_get_vid('projects');
+                $term = new stdClass;
+                $term->vid = $vid;
+                $term->name = $form_state['values']['project_create'];
+                taxonomy_term_save($term);
+                $squery = db_select('taxonomy_term_data', 'taxo');
+                $squery->fields('taxo', array('tid'));
+                $squery->condition('name', $form_state['values']['project_create'], 'like');
+                $result = $squery->execute()->fetchField();
+                $pid = $result;
+                $values[$i] = array('tid' => $result);
+                $new_flag += 1;
+            } else {
+                $values[$i] = array('tid' => autocomplete_get_id_func($form_state['values']['project_name_' . $i]));
+            }
+            $values[$i]['clkout'] = $form_state['input']['project_time_' . $i]['time'];
+            $values[$i]['flag'] = $flag + ($new_flag * 2);
+        }
+        for ($i = 0; $i < $form_state['input']['multi']; $i++) {
+            if ($i == 0) {
+                $clkin = $clkin + timesol_convert_h_to_s($values[$i]['clkout']);
+                $upquery = db_update('empclkin');
+                $upquery->fields(array(
+                    'clkout' => $clkin,
+                    'pid' => $values[$i]['tid'],
+                    'flag' => $values[$i]['flag']
+                ));
+                $upquery->condition('eid', $form_state['values']['eid'], '=')->isNull('clkout')->execute();
+            } else {
+                $clkout = $clkin + timesol_convert_h_to_s($values[$i]['clkout']);
+                $inquery = db_insert('empclkin')->fields(array(
+                    'eid' => $form_state['values']['eid'],
+                    'clkin' => $clkin,
+                    'clkout' => $clkout,
+                    'flag' => $values[$i]['flag'],
+                    'pid' => $values[$i]['tid']
+                ))->execute();
+                $clkin = $clkout;
+            }
+            if ($flag) {
+                $inquery = db_insert('request')->fields(array(
+                    'eid' => $form_state['values']['eid'],
+                    'fid' => NULL,
+                    'sdate' => time(),
+                    'rstatus' => 0,
+                    'rtype' => 2,
+                    'adid' => $mgr,
+                    'descp' => t('This is a clock in request')
+                ));
+            }
+        }
     }
-    $pid = !is_null($form_state['values']['project_details']) ? autocomplete_get_id_func($form_state['values']['project_details']) : $pid;
-    if ($flag) {
-      $inquery = db_insert('request') -> fields(array(
-        'eid' => $form_state['values']['eid'],
-        'fid' => NULL,
-        'sdate' => time(),
-        'rstatus' => 0,
-        'rtype' => 2,
-        'adid' => $mgr,
-        'descp' => t('This is a clock out request for the date:' . $form_state['values']['clkin'] . ' Project: ' . $form_state['values']['project_details'])
-      )) -> execute();
-      $upquery = db_update('empclkin') -> fields(array(
-        'clkout' => $form_state['values']['project_time'],
-        'pid' => $pid,
-        'flag' => $flag + ($new_flag * 2)
-      ));
-      $upquery -> isNull('clkout') -> condition('eid', $form_state['values']['eid'], '=') -> execute();
-    }
-    else {
-      $upquery = db_update('empclkin') -> fields(array(
-        'clkout' => time(),
-        'pid' => $pid,
-        'flag' => $flag + ($new_flag * 2)
-      )) -> isNull('clkout') -> condition('eid', $form_state['values']['eid'], '=') -> execute();
-    }
-  }
-  else {
-    $values = array();
-    $clkin = $form_state['values']['clkin'];
-    for ($i = 0; $i < $form_state['input']['multi']; $i++) {
-      $new_flag = 0;
-      if ($form_state['values']['new_project_' . $i] == 1) {
-        $vid = taxonomy_vocabulary_get_vid('projects');
-        $term = new stdClass;
-        $term -> vid = $vid;
-        $term -> name = $form_state['values']['project_create'];
-        taxonomy_term_save($term);
-        $squery = db_select('taxonomy_term_data', 'taxo');
-        $squery -> fields('taxo', array('tid'));
-        $squery -> condition('name', $form_state['values']['project_create'], 'like');
-        $result = $squery -> execute() -> fetchField();
-        $pid = $result;
-        $values[$i] = array('tid' => $result);
-        $new_flag += 1;
-      }
-      else {
-        $values[$i] = array('tid' => autocomplete_get_id_func($form_state['values']['project_name_' . $i]));
-      }
-      $values[$i]['clkout'] = $form_state['input']['project_time_' . $i]['time'];
-      $values[$i]['flag'] = $flag + ($new_flag * 2);
-    }
-    for ($i = 0; $i < $form_state['input']['multi']; $i++) {
-      if ($i == 0) {
-        $clkin = $clkin + timesol_convert_h_to_s($values[$i]['clkout']);
-        $upquery = db_update('empclkin');
-        $upquery -> fields(array(
-          'clkout' => $clkin,
-          'pid' => $values[$i]['tid'],
-          'flag' => $values[$i]['flag']
-        ));
-        $upquery -> condition('eid', $form_state['values']['eid'], '=') -> isNull('clkout') -> execute();
-      }
-      else {
-        $clkout = $clkin + timesol_convert_h_to_s($values[$i]['clkout']);
-        $inquery = db_insert('empclkin') -> fields(array(
-          'eid' => $form_state['values']['eid'],
-          'clkin' => $clkin,
-          'clkout' => $clkout,
-          'flag' => $values[$i]['flag'],
-          'pid' => $values[$i]['tid']
-        )) -> execute();
-        $clkin = $clkout;
-      }
-      if ($flag) {
-        $inquery = db_insert('request') -> fields(array(
-          'eid' => $form_state['values']['eid'],
-          'fid' => NULL,
-          'sdate' => time(),
-          'rstatus' => 0,
-          'rtype' => 2,
-          'adid' => $mgr,
-          'descp' => t('This is a clock in request')
-        ));
-      }
-    }
-  }
-  drupal_goto('home');
+    drupal_set_message(t('You have successfully clocked out'));
+    drupal_goto('home');
 }
 
 /**
  * Ajax function to return to the form
  */
-function timesol_clockout_form_ajax($form, $form_state) {
-  return $form['multi_projects'];
+function timesol_clockout_form_ajax($form, $form_state)
+{
+    return $form['multi_projects'];
 }
 
-function timesol_project_autocomplete($string = '') {
-  $matches = array();
-  $query = db_select('taxonomy_term_data', 'c') -> fields('c', array(
-    'name',
-    'tid'
-  )) -> condition('c.name', '%' . db_like($string) . '%', 'LIKE');
-  $vid = taxonomy_vocabulary_get_vid('projects');
-  $query -> condition('c.vid', $vid, '=');
-  $res = $query -> execute();
-  foreach ($res as $row) {
-    $matches[$row -> name . " [Id:$row->tid]"] = check_plain($row -> name);
-  }
-  return drupal_json_output($matches);
+function timesol_project_autocomplete($string = '')
+{
+    $matches = array();
+    $query = db_select('taxonomy_term_data', 'c')->fields('c', array(
+        'name',
+        'tid'
+    ))->condition('c.name', '%' . db_like($string) . '%', 'LIKE');
+    $vid = taxonomy_vocabulary_get_vid('projects');
+    $query->condition('c.vid', $vid, '=');
+    $res = $query->execute();
+    foreach ($res as $row) {
+        $matches[$row->name . " [Id:$row->tid]"] = check_plain($row->name);
+    }
+    return drupal_json_output($matches);
 }
 
 /**
  * function to get the Id from an auto complete function output
  */
-function autocomplete_get_id_func($string) {
-  $sub_string = explode(':', $string);
-  $id = explode(']', $sub_string[1]);
-  return $id[0];
+function autocomplete_get_id_func($string)
+{
+    $sub_string = explode(':', $string);
+    $id = explode(']', $sub_string[1]);
+    return $id[0];
 }
 
 /**
  * function to return the clockin time for the current employee
  */
-function timesol_return_clockin_time_status($eid) {
-  $squery = db_select('empclkin', 'clk');
-  $squery -> fields('clk', array(
-    'clkin',
-    'flag'
-  ));
-  $squery -> condition('eid', $eid, '=') -> isNull('clkout');
-  $result = $squery -> execute() -> fetchObject();
-  return $result;
+function timesol_return_clockin_time_status($eid)
+{
+    $squery = db_select('empclkin', 'clk');
+    $squery->fields('clk', array(
+        'clkin',
+        'flag'
+    ));
+    $squery->condition('eid', $eid, '=')->isNull('clkout');
+    $result = $squery->execute()->fetchObject();
+    return $result;
 }
 
 /**
  * function to convert time from hours&minutes to seconds
  */
-function timesol_convert_h_to_s($time) {
-  $hours = explode(':', $time);
-  $seconds = $hours[0] * 3600 + $hours[1] * 60;
-  return $seconds;
+function timesol_convert_h_to_s($time)
+{
+    $hours = explode(':', $time);
+    $seconds = $hours[0] * 3600 + $hours[1] * 60;
+    return $seconds;
 }
 
 /**
  * Implements hook_cron
  */
-function timesol_cron() {
-  $flagged = array();
-  $squery = db_select('empclkin', 'clk');
-  $squery -> innerJoin('employee', 'e', 'e.eid = clk.eid');
-  $squery -> fields('clk', array(
-    'cid',
-    'eid',
-    'clkin',
-    'flag',
-  ));
-  $squery -> fields('e', array('mgr_id'));
-  $squery -> isNull('clkout');
-  $result = $squery -> execute();
-  foreach ($result as $row) {
-    watchdog('timeso', var_export($row, TRUE));
-    $time = time();
-    if (($time - $row -> clkin % 3600) > 20) {
-      db_update('empclkin') -> fields(array('flag' => 1)) -> condition('cid', $row -> cid, '=') -> execute();
+function timesol_cron()
+{
+    $flagged = array();
+    $squery = db_select('empclkin', 'clk');
+    $squery->innerJoin('employee', 'e', 'e.eid = clk.eid');
+    $squery->fields('clk', array(
+        'cid',
+        'eid',
+        'clkin',
+        'flag',
+    ));
+    $squery->fields('e', array('mgr_id'));
+    $squery->isNull('clkout');
+    $result = $squery->execute();
+    foreach ($result as $row) {
+        watchdog('timeso', var_export($row, TRUE));
+        $time = time();
+        if (($time - $row->clkin % 3600) > 20) {
+            db_update('empclkin')->fields(array('flag' => 1))->condition('cid', $row->cid, '=')->execute();
+        }
     }
-  }
 }
 
-function timesol_views_api() {
-  return array(
-    'api' => 3,
-    'path' => drupal_get_path('module', 'timesol') . '/views',
-  );
+function timesol_views_api()
+{
+    return array(
+        'api' => 3,
+        'path' => drupal_get_path('module', 'timesol') . '/views',
+    );
+}
+
+function timesol_theme() {
+    return array(
+        'timesol_clockout_details_form' => array(
+            'render element' => 'form',
+            'template' => 'timesol-clockout-details-form'
+        ),
+    );
 }

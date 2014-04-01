@@ -58,6 +58,14 @@ function _request_views_data(&$data) {
     ),
     'filter' => array('handler' => 'views_handler_filter_string', ),
     'sort' => array('handler' => 'views_handler_sort', ),
+      'relationship' => array(
+          'title' => t('Admin request record'),
+          'help' => t('Admin request Record'),
+          'handler' => 'views_handler_relationship',
+          'base' => 'employee',
+          'base field' => 'eid',
+          'field' => 'adid',
+          'label' => t('Employee request Record')),
     'argument' => array('handler' => 'views_handler_argument_numeric', ),
     'title' => t('Assigned to'),
     'help' => t(''),
@@ -79,7 +87,7 @@ function _request_views_data(&$data) {
       'handler' => 'views_handler_field_azur_static',
       'click sortable' => TRUE,
     ),
-    'filter' => array('handler' => 'views_handler_filter', ),
+    'filter' => array('handler' => 'views_handler_filter_numeric', ),
     'sort' => array('handler' => 'views_handler_sort', ),
   ); 
   $data['request']['sdate'] = array(

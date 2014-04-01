@@ -177,12 +177,19 @@ function azur_emp_update_4() {
   ));
   
 }
-function azur_emp_update_11(){
-	$add = array(
-    'type' => 'int',
-    'not null' => FALSE,
-     'unsigned' => TRUE,
-    'description' => "Payment",
-  );
-  db_add_field('employee', 'payment', $add);
+function azur_emp_update_12() {
+    db_change_field('address', 'phone', 'phone', array(
+        'type' => 'int',
+        'size' => 'medium',
+        'description' => 'Mobile number',
+        'not null' => FALSE,
+        'unsigned' => TRUE,
+    ));
+    db_change_field('address', 'resphone', 'resphone', array(
+        'type' => 'int',
+        'size' => 'medium',
+        'description' => 'Res phone',
+        'not null' => FALSE,
+        'unsigned' => TRUE,
+    ));
 }

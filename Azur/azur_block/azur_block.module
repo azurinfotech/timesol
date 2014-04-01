@@ -34,14 +34,14 @@ function azur_block_block_view($delta = '') {
       break;
     case 'recent_activity' :
       $block = array(
-        'subject' => t('Recent Activity'),
+        'subject' => t(''),
         'content' => recent_activity_block_generate()
       );
       break;
 		case 'bid_manage':
 			$block = array(
 			'subject' => t(''),
-			'content' =>'<div class="btn">'.l('Generate Bid','add/bid').'</div>',
+			'content' =>'<a class="metro tile square imagetext" href="./add/bid"> Caerus Online System </a>',
 			);
 			break;
   }
@@ -428,10 +428,10 @@ function employee_generate_request_data($eid) {
   $result = $squery -> condition($or) -> range(0, 4) -> execute();
   foreach ($result as $row) {
     if ($row -> eid == $eid) {
-      $rows[] = array('description' => t('You created a new'. l('request','your/'.$eid.'/requests').' on ') . date('d/m/y', $row -> sdate));
+      $rows[] = array('description' => t('You created a new '. l('request','created-requests').' on ') . date('d/m/y', $row -> sdate));
     }
     else {
-      $rows[] = array('description' => t('A request has been'.l(' assigned to you','assignedto/'.$eid.'/requests').' on ') . date('d/m/y', $row -> sdate));
+      $rows[] = array('description' => t('A request has been'.l(' assigned to you','created-requests').' on ') . date('d/m/y', $row -> sdate));
     }
   }
   return $rows;
