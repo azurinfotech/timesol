@@ -107,9 +107,27 @@ function bid_management_update_5(){
     $industry = array(
         'type' => 'text',
         'size' => 'medium',
-        'not null' => FALSE,
-        'unsigned' => TRUE,
         'description' => "Business Drivers",
     );
     db_add_field('bid_management', 'bis_drivers', $industry);
+}
+function bid_management_update_7(){
+    $industry = array(
+        'type' => 'varchar',
+        'length' => '256',
+        'description' => "fids",
+    );
+    db_add_field('bid_management', 'fid', $industry);
+}
+function bid_management_update_8() {
+    db_change_field('bid_management', 'sales_owner', 'sales_owner', array(
+        'type' => 'varchar',
+        'length' => '256',
+        'description' => 'Sales owner.'
+    ));
+    db_change_field('bid_management', 'delivery_bid_owner', 'delivery_bid_owner', array(
+        'type' => 'varchar',
+        'length' => '256',
+        'description' => 'Delivery bid owner.'
+    ));
 }

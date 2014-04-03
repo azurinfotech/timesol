@@ -194,7 +194,7 @@ function admin_autocomplete($string = '') {
 	if($pos){
 		$sub_str = explode(',',$string);
 		$count = count($sub_str);
-		$new_string = $sub_str[$count-1];
+		$new_string = trim($sub_str[$count-1]);
 	}
   $query = db_select('employee', 'e') -> fields('e', array(
     'firstname',
