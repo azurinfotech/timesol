@@ -150,7 +150,7 @@ function timesol_clockout_form($form, &$form_state)
     );
     $form['details'] = array(
         '#type' => 'item',
-        '#markup' => '<div class ="block_emp_clkin"><h4>Last Clock In ' . date('H:i a', $result->clkin) . '</h4></div>'
+        '#markup' => '<div class ="block_emp_clkin"><h4>Last Clock In ' . date('H:i a', $result->clkin) .' '.$employee->timezone. '</h4></div>'
     );
     $form['lunch_check'] = array(
         '#type' => 'checkbox',

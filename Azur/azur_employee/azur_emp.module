@@ -492,6 +492,7 @@ function azur_user_return_employee() {
   $query -> condition('uid', $user -> uid, '=');
   $result = $query -> execute() -> fetchObject();
   $result -> uid = $user -> uid;
+  $result -> timezone = $user -> timezone;
   return $result;
 }
 
