@@ -1,0 +1,101 @@
+<?php
+function offer_schema()
+{
+    $schema = array();
+    _offer_table_create($schema);
+    return $schema;
+}
+
+function _offer_table_create(&$schema)
+{
+    $schema['offer'] = array(
+        'description' => 'offer details',
+        'fields' => array(
+            'oid' => array(
+                'description' => 'offer ID',
+                'type' => 'serial',
+                'not null' => TRUE,
+                'unsigned' => TRUE,
+            ),
+            'uid' => array(
+                'type' => 'int',
+                'not null' => TRUE,
+                'description' => "User uid.",
+                'unsigned' => TRUE,
+            ),
+            'firstname' => array(
+                'description' => 'Firstname',
+                'type' => 'varchar',
+                'not null' => FALSE,
+                'length' => 64,
+            ),
+            'lastname' => array(
+                'description' => 'Lastname',
+                'type' => 'varchar',
+                'not null' => FALSE,
+                'length' => 64,
+            ),
+            'address' => array(
+                'description' => 'The address of the person to generate the offer for',
+                'type' => 'text',
+                'size' => 'medium',
+            ),
+            'designation' => array(
+                'description' => 'designation of the person to generate the offer for',
+                'type' => 'varchar',
+                'length' => 64,
+            ),
+            'jdate' => array(
+                'description' => 'Joining date of the person to generate the offer for',
+                'type' => 'varchar',
+                'length' => 256,
+            ),
+            'base_sal' => array(
+                'type' => 'int',
+                'description' => 'Basic salary',
+                'not null' => TRUE,
+                'unsigned' => TRUE,
+            ),
+            'hra' => array(
+                'type' => 'int',
+                'description' => 'House rent allowance',
+                'not null' => TRUE,
+                'unsigned' => TRUE,
+            ),
+            'con_all' => array(
+                'type' => 'int',
+                'description' => 'Conveyance Allowance',
+                'not null' => TRUE,
+                'unsigned' => TRUE,
+            ),
+            'spe_all' => array(
+                'type' => 'int',
+                'description' => 'Special allowance',
+                'not null' => TRUE,
+                'unsigned' => TRUE,
+            ),
+            'pf' => array(
+                'type' => 'int',
+                'description' => 'provident fund',
+                'not null' => TRUE,
+                'unsigned' => TRUE,
+            ),
+            'med_all' => array(
+                'type' => 'int',
+                'description' => 'Medical allowance',
+                'not null' => TRUE,
+                'unsigned' => TRUE,
+            ),
+            'esi' => array(
+                'type' => 'int',
+                'description' => 'esi',
+                'not null' => TRUE,
+                'unsigned' => TRUE,
+            ),
+        ),
+        'primary key' => array('oid'),
+        'indexes' => array(
+            'user' => array('uid'),
+        ),
+    );
+}

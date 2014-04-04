@@ -1,0 +1,126 @@
+<?php
+/**
+ *implements hook_menu
+ */
+
+function offer_menu()
+{
+    $items['offer_letter'] = array(
+        'title' => 'Offer Letter',
+        'description' => 'A form to add employee details into the Database',
+        'page callback' => 'drupal_get_form',
+        'access arguments' => array(TRUE),
+        'page arguments' => array('offer_letter_form'),
+        'type' => MENU_NORMAL_ITEM,
+    );
+
+    return $items;
+}
+
+/**
+ * Implements hook_form
+ * @param $form: the form variable
+ * @param $form_state: stores all the form variables
+ * @return mixed : a fully formed form array
+ */
+function offer_letter_form($form, &$form_state)
+{
+    $form['name'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Name of the employee'),
+        '#size' => 50,
+        '#maxlength' => 100,
+        '#required' => TRUE,
+    );
+    $form['address'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Address of the employee'),
+        '#size' => 50,
+        '#maxlength' => 100,
+        '#required' => TRUE,
+    );
+    $form['designation'] = array(
+        '#type' => 'textfield',
+        '#title' => t('designation of the employee'),
+        '#size' => 50,
+        '#maxlength' => 100,
+        '#required' => TRUE,
+    );
+    $form['jdate'] = array(
+        '#type' => 'date_popup',
+        '#title' => t('<b> Joining date </b>'),
+        '#date_label_position' => 'within',
+        '#attributes' => array('placeholder' => 'MM/DD/YYYY'),
+        '#date_format' => variable_get('date_format_date_only', 'm/d/Y'),
+        '#required' => TRUE
+    );
+    $form['bsalary'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Basic salary of the employee'),
+        '#size' => 50,
+        '#maxlength' => 100,
+        '#required' => TRUE,
+    );
+    $form['hra'] = array(
+        '#type' => 'textfield',
+        '#title' => t('HRA'),
+        '#size' => 50,
+        '#maxlength' => 100,
+        '#required' => TRUE,
+    );
+    $form['med_all'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Medical Allowances'),
+        '#size' => 50,
+        '#maxlength' => 100,
+        '#required' => TRUE,
+    );
+    $form['con_all'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Convenyance allowance of the employee'),
+        '#size' => 50,
+        '#maxlength' => 100,
+        '#required' => TRUE,
+    );
+    $form['spe_all'] = array(
+        '#type' => 'textfield',
+        '#title' => t('Special allowance'),
+        '#size' => 50,
+        '#maxlength' => 100,
+        '#required' => TRUE,
+    );
+    $form['pf'] = array(
+        '#type' => 'textfield',
+        '#title' => t('PF'),
+        '#size' => 50,
+        '#maxlength' => 100,
+        '#required' => TRUE,
+    );
+    $form['esi'] = array(
+        '#type' => 'textfield',
+        '#title' => t('ESI'),
+        '#size' => 50,
+        '#maxlength' => 100,
+        '#required' => TRUE,
+    );
+    $form['submit'] = array(
+        '#type' => 'submit',
+        '#value' => t('Generate')
+    );
+    return $form;
+}
+
+function offer_letter_form_submit($form,&$form_state){
+    name
+    address
+    designation
+    jdate
+    bsalary
+    hra
+    med_all
+    con_all
+    spe_all
+    pf
+    esi
+    PDF
+}
