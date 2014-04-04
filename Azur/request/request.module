@@ -17,12 +17,12 @@ function request_permission() {
  * Implements hook_menu().
  */
 function request_menu() {
-  $items['send/request'] = array(
+  $items['request/add'] = array(
     'title' => 'Add Request',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('request_form'),
     'access arguments' => array(CONST_PERM_REQUEST),
-    'type' => MENU_NORMAL_ITEM,
+    'type' => MENU_DEFAULT_LOCAL_TASK,
   );
   $items['request'] = array(
     'title' => 'Request',
@@ -30,6 +30,7 @@ function request_menu() {
     'access arguments' => array(CONST_PERM_REQUEST),
     'type' => MENU_NORMAL_ITEM,
   );
+  
   $items['request/%/edit'] = array(
     'title' => 'Edit',
     'page callback' => 'drupal_get_form',

@@ -30,6 +30,7 @@ function timesol_menu()
         ),
         'type' => MENU_NORMAL_ITEM,
     );
+	
     $items['timesol/project'] = array(
         'page callback' => 'timesol_project_autocomplete',
         'access arguments' => array(CONST_PROJECT_AUTOCOMPLETE),
