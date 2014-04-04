@@ -1,6 +1,7 @@
 <?php
 define('CONST_EMPLOYEE_CLOCKOUT', 'employee clock out');
 define('CONST_PROJECT_AUTOCOMPLETE', 'access auto complete');
+define('CONST_EMPLOYEE_VIEW_TIME_SHEET', 'access time sheet');
 
 /**
  * Implements hook_permission().
@@ -10,6 +11,7 @@ function timesol_permission()
     return array(
         CONST_EMPLOYEE_CLOCKOUT => array('title' => t('Employee Clock out')),
         CONST_PROJECT_AUTOCOMPLETE => array('title' => t('Access project auto complete')),
+        CONST_EMPLOYEE_VIEW_TIME_SHEET => array('title' => t('Access own time sheet'))
     );
 }
 
@@ -30,11 +32,19 @@ function timesol_menu()
         ),
         'type' => MENU_NORMAL_ITEM,
     );
-	
+
     $items['timesol/project'] = array(
         'page callback' => 'timesol_project_autocomplete',
         'access arguments' => array(CONST_PROJECT_AUTOCOMPLETE),
         'type' => MENU_CALLBACK,
+    );
+    $items['timesheet/%/%'] = array(
+        'title' => t('Time sheet'),
+        'description' => 'The employees time sheet',
+        'page callback' => 'timesheet_view_generate',
+        'access arguments' => array(CONST_EMPLOYEE_VIEW_TIME_SHEET),
+        'page arguments' => array(1,2),
+        'type' => MENU_NORMAL_ITEM
     );
     return $items;
 }
@@ -66,10 +76,12 @@ function timesol_block_view($delta = '')
                 $block['subject'] = t('');
                 if (!$emp_status) {
                     $form = drupal_get_form('timesol_clockin_form');
-                    $block['content'] = '<div class="metro"><div class="tile square imagetext" style="padding:30px;">' .drupal_render($form).'</div></div>';
+                    $block['content'] = '<div class="metro"><div class="tile wide imagetext bg-color-orange" style="padding:30px;">
+                    <div class="image-wrapper"><img src="' . drupal_get_path('module', 'timesol') . '/clock.png' . '" style=""/></div><div class="column-text">' . drupal_render($form) . '</div></div></div>';
                 } else {
                     $form = drupal_get_form('timesol_clockout_form');
-                    $block['content'] = '<div class="metro"><div class="tile square imagetext" style="padding:30px;">' .drupal_render($form).'</div></div>';
+                    $block['content'] = '<div class="metro"><div class="tile wide imagetext bg-color-orange" style="padding:30px;">
+                   <div class="image-wrapper"><img src="' . drupal_get_path('module', 'timesol') . '/clock.png' . '" style=""/></div><div class="column-text">' . drupal_render($form) . '</div></div></div>';
                 }
             }
             break;
@@ -108,6 +120,11 @@ function timesol_clockin_form($form, &$form_state)
     $form['heading'] = array(
         '#type' => 'item',
         '#markup' => '<div class="block_emp_name"><h4>Welcome back ' . $employee->firstname . '!</h4></div>',
+    );
+    $form['lunch_check'] = array(
+        '#type' => 'checkbox',
+        '#title' => t('Lunch'),
+        '#value' => array('lunch'),
     );
     $form['submit'] = array(
         '#type' => 'submit',
@@ -151,7 +168,7 @@ function timesol_clockout_form($form, &$form_state)
     );
     $form['details'] = array(
         '#type' => 'item',
-        '#markup' => '<div class ="block_emp_clkin"><h4>Last Clock In ' . date('H:i a', $result->clkin) .' '.$employee->timezone. '</h4></div>'
+        '#markup' => '<div class ="block_emp_clkin"><h4>Last Clock In ' . date('h:i a', $result->clkin) . ' ' . $employee->timezone . '</h4></div>'
     );
     $form['lunch_check'] = array(
         '#type' => 'checkbox',
@@ -246,7 +263,7 @@ function timesol_clockout_details_form($form, &$form_state, $eid)
             '#date_label_position' => 'within',
             '#title' => t('Project time'),
             '#description' => t('Enter the number of hours that you worked on this project'),
-            '#default_value' => '',
+            '#default_value' => 0,
             '#date_format' => variable_get('date_format_date_only', 'H:i'),
         );
     }
@@ -304,14 +321,14 @@ function taxonomy_vocabulary_get_vid($name)
 function timesol_clockout_details_form_validate($form, &$form_state)
 {
     if ($form_state['values']['multiple'] == 0) {
-        if ($form_state['values']['new_project'] != 1 && !strpos($form_state['values']['project_details'],'[')) {
+        if ($form_state['values']['new_project'] != 1 && !strpos($form_state['values']['project_details'], '[')) {
             form_set_error('project_details', t('Enter a valid project name for clock out.'));
         }
     } else {
         for ($i = 0; $i < $form_state['input']['multi']; $i++) {
-               if($form_state['values']['new_project_'.$i] == 0 && !strpos($form_state['values']['project_name_'.$i],'[')){
-                               form_set_error('project_details_'.$i,t('Enter a valid project name for clock out.'));
-               }
+            if ($form_state['values']['new_project_' . $i] == 0 && !strpos($form_state['values']['project_name_' . $i], '[')) {
+                form_set_error('project_details_' . $i, t('Enter a valid project name for clock out.'));
+            }
         }
     }
 }
@@ -347,15 +364,15 @@ function timesol_clockout_details_form_submit($form, &$form_state)
                 'sdate' => time(),
                 'rstatus' => 1,
                 'rtype' => 2,
-                'adid' => !is_null($mgr)? $mgr : 0,
+                'adid' => !is_null($mgr) ? $mgr : 0,
                 'descp' => t('This is a clock out request for the date:' . $form_state['values']['clkin'] . ' Project: ' . $form_state['values']['project_details'])
             ))->execute();
             $upquery = db_update('empclkin')->fields(array(
-                'clkout' => $form_state['values']['clkin']+strtotime($form_state['values']['project_time']),
+                'clkout' => $form_state['values']['clkin'] + strtotime($form_state['values']['project_time']),
                 'pid' => $pid,
                 'flag' => $flag + ($new_flag * 2)
-            )) ->execute();
-            $upquery->isNull('clkout')->condition('eid', $form_state['values']['eid'], '=')->execute();
+            ))->execute();
+            $upquery->condition('eid', $form_state['values']['eid'], '=')->isNull('clkout')->execute();
         } else {
             $upquery = db_update('empclkin')->fields(array(
                 'clkout' => time(),
@@ -518,11 +535,79 @@ function timesol_views_api()
     );
 }
 
-function timesol_theme() {
+function timesol_theme()
+{
     return array(
         'timesol_clockout_details_form' => array(
             'render element' => 'form',
             'template' => 'timesol-clockout-details-form'
         ),
     );
+}
+
+function timesheet_view_generate($eid= 0,$month = 0)
+{
+    global $user;
+    $rows = array();
+    $query = db_select('empclkin', 'clk');
+    $query->innerJoin('employee', 'emp', 'emp.eid = clk.eid');
+    $query->fields('clk');
+    if($eid == 0){
+        $query -> condition('emp.uid',$user -> uid,'=');
+    }
+    else{
+        $query -> condition('clk.eid',$eid,'=');
+    }
+    if($month == 0){
+        $month = date('n',time());
+    }
+    $result = $query->execute();
+    foreach ($result as $row) {
+        if(date('n',$row -> clkin) == $month){
+            if(!isset( $rows[$month][date('W',$row -> clkin)][date('j',$row -> clkin)])){
+                $hours = round(($row -> clkout - $row -> clkin)/3600);
+                $min = round((($row -> clkout - $row -> clkin)%3600)/60,1);
+            $rows[$month][date('W',$row -> clkin)][date('j',$row -> clkin)] = array(date('m/d/y',$row->clkin), date('h:i',$row -> clkin),date('h:i',$row -> clkout),$hours.': '.$min);
+            }
+            else{
+                $old_time = explode(':', $rows[$month][date('W',$row -> clkin)][date('j',$row -> clkin)][3]);
+                $hours = $old_time[0]+round(($row -> clkout - $row -> clkin)/3600);
+                $min = $old_time[1]+round((($row -> clkout - $row -> clkin)%3600)/60,1);
+                if($min > 60){
+                    $hours ++;
+                    $min = $min -60;
+                }
+                $rows[$month][date('W',$row -> clkin)][date('j',$row -> clkin)] = array(date('m/d/y',$row->clkin), date('h:i',$row -> clkin),date('h:i',$row -> clkout),$hours.': '.$min);
+            }
+        }
+    }
+    $week_table = array();
+    $output = '';
+    $header = array('Date','In','Out','Hours');
+    if(isset($rows[$month])){
+    foreach($rows[$month] as  $tb_row){
+        $var['header'] = $header;
+        $var['rows'] = $tb_row;
+        $output .= theme('table',$var);
+        $week_hours =0;
+        $week_time =0;
+        $week_min =0;
+        foreach($tb_row as $week_total){
+            $week_time= explode(':',$week_total[3]);
+            $week_hours += $week_time[0];
+            $week_min += $week_time[1];
+        }
+        if($week_min > 60){
+            $week_hours ++;
+            $week_min = $week_min -1;
+        }
+        $output .= '<div class="week-summary">Total for week : '.$week_hours.': '.$week_min.'</div>';
+    }
+    }
+    else{
+        $output .= t('No clock in details to display');
+    }
+    $output .= '<div class="timesheet-footer"><div class="prev-mont">' .l('Previous month','timesheet/'.$eid.'/'.($month-1));
+    $output .= '<div class="next-mont" style="float:right;">' .l('Next month','timesheet/'.$eid.'/'.($month+1)).'</div>';
+    return $output;
 }

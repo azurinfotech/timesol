@@ -13,14 +13,21 @@ function offer_menu()
         'page arguments' => array('offer_letter_form'),
         'type' => MENU_NORMAL_ITEM,
     );
-
+    $items['offer_letter_view/%'] = array(
+        'title' => 'Offer Letter view',
+        'description' => 'A form to add employee details into the Database',
+        'page callback' => 'generate_offer_letter_view',
+        'page arguments' => array(1),
+        'access arguments' => array(TRUE),
+        'type' => MENU_NORMAL_ITEM,
+    );
     return $items;
 }
 
 /**
  * Implements hook_form
- * @param $form: the form variable
- * @param $form_state: stores all the form variables
+ * @param $form : the form variable
+ * @param $form_state : stores all the form variables
  * @return mixed : a fully formed form array
  */
 function offer_letter_form($form, &$form_state)
@@ -110,17 +117,82 @@ function offer_letter_form($form, &$form_state)
     return $form;
 }
 
-function offer_letter_form_submit($form,&$form_state){
-    name
-    address
-    designation
-    jdate
-    bsalary
-    hra
-    med_all
-    con_all
-    spe_all
-    pf
-    esi
-    PDF
+function offer_letter_form_submit($form, &$form_state)
+{
+    drupal_goto('offer_letter_view/'.$form_state);
+}
+function generate_offer_letter_view($form_state){
+    $output = array();
+    $output = '<h2 class="offer-heading"> APPOINTMENT LETTER </h2><div class="offer-headers"> To, </br>'. $form_state['values']['name']. '</br>'.
+        $form_state['values']['address'].'</br> Dear'.
+        $form_state['values']['name'].
+        '</div></br><div class="offer-text" style="text-align:justify"><p>We welcome you to “The Azur family”. Please find below the terms and conditions of your employment with Azur.</p>
+  <p>1. Further to your reference to your application and subsequent interview with us, we are pleased to appoint you as
+ “'.$form_state['values']['designation'].'”, at our Chennai Office, with effect from 10th February, 2014, on the following terms and conditions.</p>
+ <p>2. Date of Joining: You have joined us on 10th February 2014.  Please note that this appointment is conditional to the satisfactory and positive clearance
+of specific background checks that may be performed on you. You acknowledge that you will provide the documentation required by law as evidence of
+your personal identity and work eligibility. You further agree that the Company reserves the right to terminate your employment, without further notice to you and without any liability,
+ if such clear and positive background check is not obtained in relation to you. The results, if negative shall be conveyed to you.</p>
+ <p>3.<b> Training Period /Confirmation/ Employment Bond</b>: You will be on a Training Period for six months. Based on your performance, your services will
+ be confirmed with the company after six months. You will also be required to get into an Employment Bond for 3 years from the start of your employment,
+ if considered necessary by the Company.</p>
+ <p>4.<b> Stipend</b>: You will be paid a stipend as stipulated in Annexure - A during your Training Period and other facilities as may be mutually agreed.
+ The amount as per the said annexure will be payable net of statutory deductions at the end of each month on a pro- rata basis as may be applicable and reviewed
+ appropriately based upon your performance/accomplishments.
+ Benefits as applicable are subject to modification, suspension, substitution or discontinuation at the Company’s sole discretion.</p>
+ <p>5. <b>Statutory Benefits</b>: You will be eligible to Provident Fund benefits as per applicable statutory laws and Company policy.
+ You will also be eligible to Gratuity benefit after five (5) years of completed service in the Company, and as per applicable statutory laws and the Company’s policy.
+ This amount is payable only upon retirement, termination, separation or death of an employee.  You will retire from the Company at the age of 60 years.</p>
+ <p>6. Working Hours: You will be required to observe the working hours as prescribed by the Company. The Company reserves the right, at any point of time,
+ to designate mandatory office timings.</p>
+ <p>'.'7. <b>Place/Transfer</b>: Your present place of work will be at Chennai, but during the course of the service, you shall be liable to be posted /
+transferred anywhere to serve any of the Companys Projects or any other establishments in India at the sole discretion of the Management.</p>
+<p>8. During the Training Period your services can be terminated with fifteen days notice without any reasons whatsoever. If your services
+ are found satisfactory during the Training Period, you will be confirmed in the present position and thereafter your services can be terminated on two month’s notice on either side.</p>
+<p>9. Absence for a continuous period of ten days without prior approval of your superior, (including overstay on leave / training) would result in your losing your lien on the service and the same
+ shall automatically come to an end without any notice or intimation.</p>
+ <p>10. <b>Leave</b>: You will be eligible to the benefits of the Company’s Leave Policy on your confirmation in the Company’s Service.</p>
+ <p>11. During the period of your employment with the Company, you will devote full time to the work of the Company.
+ Further, you will not take up any other employment or assignment or any office,
+ honorary or for any consideration, in cash or in kind or otherwise, without the prior written permission of the Company.</p>
+ <p>12. You will not (except in the normal course of the Companys business) publish any article or statement, deliver any lecture or broadcast or make
+ any communication to the press, including magazine publication relating to the Companys products or to any matter with which the Company may be concerned,
+ unless you have previously applied to and obtained the written permission from the Company.</p>
+ <p>13. You will be required to maintain utmost secrecy in respect of Project documents, commercial offer, design documents, Project cost & Estimation, Technology,
+ Software packages license, Company’s polices, Company’s patterns & Trademark and Company’s Human assets profile.</p>
+ <p>14. On resignation and/or on termination of your employment (either immediately upon request or before the last day of employment at the latest, whichever is earlier)
+you are required to return to the Company all Company property including any Company car, Company credit or charge cards, mobile phone and Palm Pilot/Blackberry (if applicable),
+ your security pass and/or keys, computer, laptop plus hardware and software (including discs), data in any form and all documents in whatever form (including notes and minutes of meetings),
+  customer lists, diaries, address books, computer printouts, plans, projections, publicity material, brochures, price lists together with all copies (irrespective of by whom and in what
+   circumstances such copies were made) which were in your possession or under your control.</p>
+<p>15. You will be required to comply with all such rules and regulations as the Company may frame from time to time.</p>
+<p>16. Any of our technical or other important information which might come into your possession during the continuance of your service
+with us shall not be disclosed, divulged or made public by you even thereafter.</p>
+<p>17. If at any time in our opinion, which is final in this matter you are found a non-performer or guilty of fraud, dishonesty, disobedience,
+disorderly behaviour, negligence, indiscipline, absent from duty without permission or any other conduct considered by us deterrent to our interest
+or in violation of one or more terms of this letter, your services may be terminated without notice and on account of reason of any of the acts or omission
+the company shall be entitled to recover the damages from you.</p>
+<p>18. You will not accept any gifts, commission or any sort of gratification in cash or kind from any person, party or firm or Company having dealings with
+the Company and if you are offered any, you should immediately report the same to the Management.</p>
+<p>19. This appointment letter is being issued to you on the basis of the information and particulars furnished by you in your application (including resume),
+at the time of your interview and subsequent discussions. If it transpires that you have made a false statement (or have not disclosed a material fact) resulting in
+your being offered this appointment, the Management may take such action as it deems fit in its sole discretion, including termination of your employment.</p>
+<p>20. You will be responsible for safekeeping and return in good condition and order of all Company property, which may be in your use, custody or charge.</p>
+<p>21. The Company reserves the right to make reasonable changes to any of the terms and conditions of your employment. You will be given appropriate written notice
+ of any such changes, which may be given by way of individual notice or a general notice to all employees. Where from time to time the Company changes or introduces policies
+ and procedures in relation to its employees, these will be deemed to apply to this employment.</p>
+ <p>22. These Terms and Conditions of your employment shall be governed by and construed in accordance with the laws of the Republic of India.</p> <p>
+Please sign and return to the undersigned the duplicate copy of this letter signifying your acceptance.</p>
+<p>With best wishes, ,/p>
+<p>For Bharat Azur IT Private Ltd</p>
+</br>
+<p>Parthasarathy Srinivasan</p>
+<p>Managing Director & Country Head India</p>
+<p>Authorized Signatory</p>
+<p>I, ____________________________________________________, hereby confirm that I have read and understood, the above stated terms and conditions of my appointment.</p>
+<p>NAME:</p>
+<p>DATE:</p>'.
+        '<p style="float:right;">Employee Signature</p>
+        ';
+    echo  $output;
 }

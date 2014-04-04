@@ -17,19 +17,18 @@ function request_permission() {
  * Implements hook_menu().
  */
 function request_menu() {
-  $items['request/add'] = array(
+  $items['requests/add'] = array(
     'title' => 'Add Request',
     'page callback' => 'drupal_get_form',
     'page arguments' => array('request_form'),
     'access arguments' => array(CONST_PERM_REQUEST),
-    'type' => MENU_DEFAULT_LOCAL_TASK,
+    'type' => MENU_LOCAL_TASK,
   );
-  $items['request'] = array(
-    'title' => 'Request',
-    'page callback' => 'requests_home',
-    'access arguments' => array(CONST_PERM_REQUEST),
-    'type' => MENU_NORMAL_ITEM,
-  );
+//  $items['requests'] = array(
+//    'title' => 'Request',
+//    'access arguments' => array(CONST_PERM_REQUEST),
+//    'type' => MENU_NORMAL_ITEM,
+//  );
   
   $items['request/%/edit'] = array(
     'title' => 'Edit',
@@ -71,6 +70,7 @@ function request_menu() {
  * EMPLOYEE REQUEST Form.
  */
 function request_form($form, &$form_state, $eid = 0, $rid = 0) {
+    drupal_set_title('Add Request');
   $edit = NULL;
   if ($rid != 0) {
     $query = db_select('request', 'req') -> fields('req', array(
@@ -116,9 +116,10 @@ function request_form($form, &$form_state, $eid = 0, $rid = 0) {
   );
     $form['fid'] = array(
         '#type' => 'managed_file',
-        '#title' => t('File ID'),
-        '#description' => t('Upload a file, allowed extensions: jpg, jpeg, png, gif'),
-        '#upload_validators' => array('file_validate_extensions' => array('jpg jpeg png gif'), ),
+        '#title' => t('Upload Receipts and Invoices'),
+        '#description' => t('Upload a file, allowed extensions: jpg, jpeg, png, gif pdf'),
+        '#help' => t('Upload a file, allowed extensions: jpg, jpeg, png, gif pdf'),
+        '#upload_validators' => array('file_validate_extensions' => array('jpg jpeg png gif pdf'), ),
         '#upload_location' => 'public://docs/',
         '#state' => array(':visible' =>  array(':input[name="rtype"]' => array('value' => 4)))
     );
@@ -148,8 +149,8 @@ function request_type($typ = '') {
   static $types;
   if (!isset($types)) {
     $types = array(
-      1 => t('Project'),
-      2 => t('Time'),
+      1 => t('New project'),
+      2 => t('Time-Sheet edit'),
       3 => t('Reimbursement'),
       4 => t('Time-off')
     );
@@ -264,7 +265,7 @@ function request_form_submit($form, &$form_state) {
     $mgr = explode($form_state['values']['adid'],'[');
     $message = t('Your request has been created and assigned to :mgr',array(':mgr' => $mgr));
     drupal_set_message($message);
-drupal_goto('created-requests');
+drupal_goto('requests');
 }
 
 /**

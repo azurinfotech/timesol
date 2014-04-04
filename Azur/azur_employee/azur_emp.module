@@ -60,7 +60,7 @@ function azur_emp_menu() {
  */
 function azur_emp_form($form, &$form_state, $eid = 0) {
   global $user;
-  $edit;
+  $edit= NULL;
   if ($eid != 0) {
     $squery = db_select('employee', 'e');
     $squery -> leftJoin('address', 'addr', 'addr.eid = e.eid');
@@ -121,7 +121,7 @@ function azur_emp_form($form, &$form_state, $eid = 0) {
     '#title' => t('Department'),
     '#description' => t('Enter the department.'),
     '#autocomplete_path' => 'groups/autocomplete',
-    '#default_value' => isset($edit->title) ?$edit -> title.'[Id:'.$edit -> nid.']': 0
+    '#default_value' => isset($edit->title) ?$edit -> title.'[Id:'.$edit -> nid.']': NULL,
   );
   $form['type'] = array(
     '#type' => 'select',
@@ -283,7 +283,7 @@ function azur_emp_address_form($form, &$form_state, $eid = 0, $aid = 0) {
 
   $form['location'] = array(
     '#type' => 'fieldset',
-    '#title' => t('Loaction.'),
+    '#title' => t('Location.'),
   );
   $form['location']['emp_address'] = array(
     '#type' => 'textarea',
@@ -397,8 +397,8 @@ function azur_employee_type($typ = '') {
   static $types;
   if (!isset($types)) {
     $types = array(
-      1 => t('Permenant Qualified'),
-      2 => t('Permenant Not Qualified'),
+      1 => t('Permanent Qualified'),
+      2 => t('Permanent Not Qualified'),
       3 => t('Contract'),
       4 => t('Part Time'),
     );
