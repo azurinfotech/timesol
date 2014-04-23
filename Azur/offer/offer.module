@@ -116,13 +116,100 @@ function offer_letter_form($form, &$form_state)
     );
     return $form;
 }
+function offer_theme(){
+    return array('offer_letter_template' => array('variables' => array('data' => NULL)),);
+}
+function theme_offer_letter_template($variables){
+dpm($variables);
+    $values = explode(',',$variables['data']);
+    $output = t('<body><h2 class="offer-header" style="text-align: center">APPOINTMENT LETTER </h2><br>');
+    $output .= t('<div class="offer-headers">:date<br><br> To,<br>:name<br>:address<br><p>Dear :name',array(':name' => $values[0],':address' => $values[1],':date' => $values[3]));
+    $output .= t('</p></div><div class="offer-text" style="text-align:justify"><p>We welcome you to The Azur family. Please find below the terms and conditions of your employment with Azur.</p></div>');
+    $output .= t('<ol class="offer-list" style="text-align: justify">
+<li style="padding-top: 10px"> <br>Further to your reference to your application and subsequent interview with us, we are pleased to appoint
+    you as :designation, at our Chennai Office, with effect from 10th February, 2014, on the following terms and conditions.<br></li>',array(':designation' => $values[2]));
+    $output .= t('<li style="padding-top: 10px"><br>Date of Joining: You have joined us on :join_date.  Please note that this appointment is conditional to the satisfactory and positive clearance of specific
+    background checks that may be performed on you. You acknowledge that you will provide the documentation required by law as evidence of your personal identity and 
+    work eligibility. You further agree that the Company reserves the right to terminate your employment, without further notice to you and without any liability, if such clear 
+    and positive background check is not obtained in relation to you. The results, if negative shall be conveyed to you.<br></li>',array(':join_date' => $values[3]));
+    $output .= t('<li style="padding-top: 10px"><br>Training Period /Confirmation/ Employment Bond: You will be on a Training Period for six months. Based on your performance, your services will be
+     confirmed with the company after six months. You will also be required to get into an Employment Bond for 3 years from the start of your employment, if considered 
+     necessary by the Company.</li>');
 
+    $output .= t('<br> <li style="padding-top: 10px"><br>Stipend: You will be paid a stipend as stipulated in Annexure - A during your Training Period and other facilities as may be mutually agreed.
+      The amount as per the said annexure will be payable net of statutory deductions at the end of each month on a pro- rata basis as may be applicable and reviewed 
+      appropriately based upon your performance/accomplishments. Benefits as applicable are subject to modification, suspension, substitution or discontinuation at the
+       Company’s sole discretion.</li>
+       <li><br>Statutory Benefits: You will be eligible to Provident Fund benefits as per applicable statutory laws and Company policy. You will also be eligible to Gratuity benefit after five (5) years of completed service in the Company, and as per applicable statutory laws and the Company’s policy. This amount is payable only upon retirement, termination, separation or death of an employee.  You will retire from the Company at the age of 60 years.
+       </li><li> <br>Working Hours: You will be required to observe the working hours as prescribed by the Company. The Company reserves the right, at any point of time, to designate mandatory office timings.
+       </li><li><br>Place/Transfer: Your present place of work will be at Chennai, but during the course of the service, you shall be liable to be posted / transferred anywhere to serve any of the Company\'s Projects or any other establishments in India at the sole discretion of the Management.
+       </li>
+       <li><br> During the Training Period your services can be terminated with fifteen days notice without any reasons whatsoever. If your services are found satisfactory during the Training Period, you will be confirmed in the present position and thereafter your services can be terminated on two month’s notice on either side.
+       </li>
+       <li><br> Absence for a continuous period of ten days without prior approval of your superior, (including overstay on leave / training) would result in your losing your lien on the service and the same shall automatically come to an end without any notice or intimation.
+       </li>
+       <li><br> Leave: You will be eligible to the benefits of the Company’s Leave Policy on your confirmation in the Company’s Service.
+       </li>
+       <li><br>During the period of your employment with the Company, you will devote full time to the work of the Company. Further, you will not take up any other employment or assignment or any office, honorary or for any consideration, in cash or in kind or otherwise, without the prior written permission of the Company.
+       </li>
+       <li><br>You will not (except in the normal course of the Company\'s business) publish any article or statement, deliver any lecture or broadcast or make any communication to the press, including magazine publication relating to the Company\'s products or to any matter with which the Company may be concerned, unless you have previously applied to and obtained the written permission from the Company.
+       </li>
+       <li> <br>You will be required to maintain utmost secrecy in respect of Project documents, commercial offer, design documents, Project cost & Estimation, Technology, Software packages license, Company’s polices, Company’s patterns & Trademark and Company’s Human assets profile.
+       </li>
+       <li><br> On resignation and/or on termination of your employment (either immediately upon request or before the last day of employment at the latest, whichever is earlier) you are required to return to the Company all Company property including any Company car, Company credit or charge cards, mobile phone and Palm Pilot/Blackberry (if applicable), your security pass and/or keys, computer, laptop plus hardware and software (including discs), data in any form and all documents in whatever form (including notes and minutes of meetings), customer lists, diaries, address books, computer printouts, plans, projections, publicity material, brochures, price lists together with all copies (irrespective of by whom and in what circumstances such copies were made) which were in your possession or under your control.
+       </li>
+       <li> <br>You will be required to comply with all such rules and regulations as the Company may frame from time to time.
+       </li>
+       <li> <br>Any of our technical or other important information which might come into your possession during the continuance of your service with us shall not be disclosed, divulged or made public by you even thereafter.
+       </li>
+       <li><br>If at any time in our opinion, which is final in this matter you are found a non-performer or guilty of fraud, dishonesty, disobedience, disorderly behaviour, negligence, indiscipline, absent from duty without permission or any other conduct considered by us deterrent to our interest or in violation of one or more terms of this letter, your services may be terminated without notice and on account of reason of any of the acts or omission the company shall be entitled to recover the damages from you.
+       </li>
+       <li><br>You will not accept any gifts, commission or any sort of gratification in cash or kind from any person, party or firm or Company having dealings with the Company and if you are offered any, you should immediately report the same to the Management.
+       </li>
+       <li> <br>This appointment letter is being issued to you on the basis of the information and particulars furnished by you in your application (including resume), at the time of your interview and subsequent discussions. If it transpires that you have made a false statement (or have not disclosed a material fact) resulting in your being offered this appointment, the Management may take such action as it deems fit in its sole discretion, including termination of your employment.
+       </li>
+       <li><br> You will be responsible for safekeeping and return in good condition and order of all Company property, which may be in your use, custody or charge.
+       </li>
+       <li><br>The Company reserves the right to make reasonable changes to any of the terms and conditions of your employment. You will be given appropriate written notice of any such changes, which may be given by way of individual notice or a general notice to all employees. Where from time to time the Company changes or introduces policies and procedures in relation to its employees, these will be deemed to apply to this employment.
+       </li>
+       <li><br>These Terms and Conditions of your employment shall be governed by and construed in accordance with the laws of the Republic of India.
+       </li></ol><br><p style="padding-top: 150px;">Please sign and return to the undersigned the duplicate copy of this letter signifying your acceptance.</p><p>With best wishes, <br>For Bharat Azur IT Private Ltd<p><br><br>
+       Parthasarathy Srinivasan<br>Director & Country Head India<br>Authorized Signatory
+       </p>
+       <p>I, ____________________________________________________, hereby confirm that I have read and understood, the above stated terms and conditions of my appointment.</p><br><br>NAME:<br>DATE:<br><p class="text-align:right">Employee Signature</p><br><br><br><br><br><br><br><br><br><br><br><br><br><br><br>
+       <h2 style="text-align: center; "> ANNEXURE A</h2>');
+      $output.=t('<br><br><table id="annex-tbl1" style="width: 600px;">
+       <tr>
+       <td><b>NAME</b></td><td>:name</td></tr><tr>
+       <td><b>DESIGNATION</b></td><td>:designation</td>
+       </tr>
+       </table>',array(':name' => $values[0],':designation' => $values[2]));
+    $output.=t(' <br><br><table id="annex-tbl2" style="width:600px">
+ <th><td>COMPENSATION DETAILS</td><td>MONTHLY</td><td>ANNUAL</td></th>
+       <tr>
+       <td><b>Basic Salary</b></td><td>:salary</td></tr><tr>
+       <td><b>Hra</b></td><td>:hra</td></tr><tr>
+       <td><b>Conveyance Allowance</b></td><td>:conv_all</td></tr><tr>
+       <td><b>Medical Allowance</b></td><td>:med_all</td></tr><tr>
+       <td><b>Special Allowance</b></td><td>:spe_all</td></tr><tr>
+       <td><b>PF</b></td><td>:pf</td></tr><tr>
+       <td><b>ESI</b></td><td>:esi</td></tr><tr>
+       <td><b>Total</b></td><td>:tot</td></tr><tr>
+       </tr>
+       </table>',array(':salary' => $values[4],':hra' => $values[5],':conv_all' => $values[6],':spe_all' => $values[8],':med_all' => $values[7],':pf' => $values[9],':esi' => $values[10],
+    ':tot' => ($values[4] + $values[5] + $values[6] + $values[7]+ $values[8] + $values[9] +$values[10]) ));
+     $output .= ' </body>';
+
+    pdf_using_mpdf_api($output);
+    return $output;
+}
 function offer_letter_form_submit($form, &$form_state)
 {
-    drupal_goto('offer_letter_view/'.$form_state);
+    drupal_goto('offer_letter_view/'.implode(',',$form_state['values']));
 }
-function generate_offer_letter_view($form_state){
-    $output = array();
+function generate_offer_letter_view($values){
+    return theme('offer_letter_template',array('data' =>$values));
+    /**
     $output = '<h2 class="offer-heading"> APPOINTMENT LETTER </h2><div class="offer-headers"> To, </br>'. $form_state['values']['name']. '</br>'.
         $form_state['values']['address'].'</br> Dear'.
         $form_state['values']['name'].
@@ -194,5 +281,5 @@ Please sign and return to the undersigned the duplicate copy of this letter sign
 <p>DATE:</p>'.
         '<p style="float:right;">Employee Signature</p>
         ';
-    echo  $output;
+    echo  $output; **/
 }
