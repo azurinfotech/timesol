@@ -1,0 +1,51 @@
+<?php
+
+/* 
+ * To change this license header, choose License Headers in Project Properties.
+ * To change this template file, choose Tools | Templates
+ * and open the template in the editor.
+ */
+
+/**
+ * Implements hook_help().
+ */
+function fieldinsync_import_help($path, $arg) {
+  /* INFO:
+   * The help hook is for displaying helpful messages at the top of pages indicated
+   * by $section to further explain how they work. Adding certain "keywords" to the end of
+   * a given path (like admin/modules#description) will cause this text to display elsewhere
+   * in the page as well (in this case, in the description section for the given module).
+   */
+  switch ($path) {
+    case 'admin/help#feeds_importers' :
+      return t("TODO: Create admin help text.");
+    // OPTIONAL: Add additional cases for other paths that should display help text.
+  }
+}
+
+/**
+ * Implements hook_enable().
+ */
+function fieldinsync_import_enable() {
+  //clear the cache to display in Feeds as available plugin.
+  cache_clear_all('plugins:feeds:plugins', 'cache');
+}
+
+/**
+ * Implements of hook_feeds_plugins().
+ */
+function fieldinsync_import_feeds_plugins() {
+  $info = array();
+  $info['employee_upload_processor'] = array(
+    'name' => 'Employees bulk upload function.',
+    'description' => 'Imports data into the Employee table.',
+    'handler' => array(
+      'parent' => 'FeedsProcessor',
+      'class' => 'employee_upload_processor',
+      'file' => 'employee_upload_processor.inc',
+      'path' => drupal_get_path('module', 'employee_upload'),
+    ),
+  );
+  return $info;
+}
+

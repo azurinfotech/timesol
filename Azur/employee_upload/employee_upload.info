@@ -1,0 +1,10 @@
+name = Feeds Import Plugins
+description = Custom processors for inserting data into employee table.
+package = Field In Sync
+core = 7.x
+version = 0.1
+
+dependencies[] = feeds_ui
+dependencies[] = feeds_import
+
+files[] = employee_upload_processor.inc
