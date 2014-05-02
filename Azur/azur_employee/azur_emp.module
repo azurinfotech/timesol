@@ -1,4 +1,5 @@
 <?php
+
 define('CONST_PERM_CREATE_EMPLOYEE', 'create employee');
 define('CONST_PERM_EDIT_EMPLOYEE', 'edit employee');
 define('CONST_PERM_ADDRESS', 'create address');
@@ -21,7 +22,7 @@ function azur_emp_menu() {
   $items['add/employee/0/%'] = array(
     'title' => 'Employee',
     'page callback' => 'drupal_get_form',
-    'page arguments' => array('azur_emp_form',2,3),
+    'page arguments' => array('azur_emp_form', 2, 3),
     'access arguments' => array(CONST_PERM_CREATE_EMPLOYEE),
     'type' => MENU_NORMAL_ITEM,
   );
@@ -30,7 +31,7 @@ function azur_emp_menu() {
     'page callback' => 'drupal_get_form',
     'page arguments' => array(
       'azur_emp_form',
-      1,2
+      1, 2
     ),
     'access arguments' => array(CONST_PERM_EDIT_EMPLOYEE),
     'type' => MENU_LOCAL_TASK,
@@ -52,7 +53,7 @@ function azur_emp_menu() {
     'type' => MENU_CALLBACK,
   );
   $items['admin/intranet_admin'] = array(
-     'title' => 'Intranet Admin config.',
+    'title' => 'Intranet Admin config.',
     'description' => 'Configure the admin for the intranet',
     'page callback' => 'drupal_get_form',
     'access arguments' => array(TRUE),
@@ -65,26 +66,25 @@ function azur_emp_menu() {
 /**
  * Implements hook_user_insert
  */
-function azur_emp_user_insert(&$edit, $account, $category)
-{
-    drupal_goto('add/employee/0/'.$account ->uid);
+function azur_emp_user_insert(&$edit, $account, $category) {
+  drupal_goto('add/employee/0/' . $account->uid);
 }
 
 /**
  * hook_form()
  * Employee Form.
  */
-function azur_emp_form($form, &$form_state, $eid = 0,$uid =0) {
+function azur_emp_form($form, &$form_state, $eid = 0, $uid = 0) {
   global $user;
-  $edit= NULL;
+  $edit = NULL;
   if ($eid != 0) {
     $squery = db_select('employee', 'e');
-    $squery -> leftJoin('address', 'addr', 'addr.eid = e.eid');
-    $squery -> leftJoin('og_membership', 'og', 'og.etid = e.eid');
-    $squery -> innerJoin('node', 'n', 'n.nid = og.gid');
-    $squery -> fields('n', array('title','nid'));
-    $squery -> fields('addr', array('aid'));
-    $squery -> fields('e', array(
+    $squery->leftJoin('address', 'addr', 'addr.eid = e.eid');
+    $squery->leftJoin('og_membership', 'og', 'og.etid = e.eid');
+    $squery->leftJoin('node', 'n', 'n.nid = og.gid');
+    $squery->fields('n', array('title', 'nid'));
+    $squery->fields('addr', array('aid'));
+    $squery->fields('e', array(
       'firstname',
       'lastname',
       'mgr_id',
@@ -93,41 +93,41 @@ function azur_emp_form($form, &$form_state, $eid = 0,$uid =0) {
       'sdate',
       'qualification'
     ));
-    $edit = $squery -> condition('e.uid', $eid, '=') -> execute() -> fetchObject();
+    $edit = $squery->condition('e.eid', $eid, '=')->execute()->fetchObject();
     $form['eid'] = array(
       '#type' => 'hidden',
       '#value' => $eid,
     );
     $form['aid'] = array(
       '#type' => 'hidden',
-      '#value' => $edit -> aid,
+      '#value' => $edit->aid,
     );
   }
-    if($uid != 0){
-        $form['uid'] = array(
-            '#type' => 'hidden',
-            '#value' => $uid
-        );
-    }
+  if ($uid != 0) {
+    $form['uid'] = array(
+      '#type' => 'hidden',
+      '#value' => $uid
+    );
+  }
   $form['firstname'] = array(
     '#type' => 'textfield',
     '#title' => t('Firstname'),
-    '#default_value' => isset($edit) ? $edit -> firstname : '',
+    '#default_value' => isset($edit) ? $edit->firstname : '',
     '#maxlength' => '64',
     '#required' => TRUE,
   );
   $form['lastname'] = array(
     '#type' => 'textfield',
     '#title' => t('Lastname'),
-    '#default_value' => isset($edit) ? $edit -> lastname : '',
+    '#default_value' => isset($edit) ? $edit->lastname : '',
     '#maxlength' => '64',
     '#required' => TRUE,
   );
-  if (in_array('Intranet Admin', $user -> roles) || in_array('administrator', $user -> roles)) {
+  if (in_array('Intranet Admin', $user->roles) || in_array('administrator', $user->roles)) {
     $form['mgr_id'] = array(
       '#type' => 'textfield',
       '#title' => t('Manager'),
-      '#default_value' => isset($edit -> mgr_id) ? azur_employee_name($edit -> mgr_id).'[Id:'.$edit ->mgr_id.']' : '',
+      '#default_value' => isset($edit->mgr_id) ? azur_employee_name($edit->mgr_id) . '[Id:' . $edit->mgr_id . ']' : '',
       '#autocomplete_path' => 'adminid/autocomplete',
       '#required' => TRUE,
     );
@@ -135,7 +135,7 @@ function azur_emp_form($form, &$form_state, $eid = 0,$uid =0) {
       '#type' => 'textfield',
       '#title' => t('Payment details'),
       '#description' => t('Enter the payment details. For partime employees and overtime pay for full time employees'),
-      '#default_value' => isset($edit -> payment) ? $edit -> payment : 0,
+      '#default_value' => isset($edit->payment) ? $edit->payment : 0,
     );
   }
   $form['departments'] = array(
@@ -143,26 +143,26 @@ function azur_emp_form($form, &$form_state, $eid = 0,$uid =0) {
     '#title' => t('Department'),
     '#description' => t('Enter the department.'),
     '#autocomplete_path' => 'groups/autocomplete',
-    '#default_value' => isset($edit->title) ?$edit -> title.'[Id:'.$edit -> nid.']': NULL,
+    '#default_value' => isset($edit->title) ? $edit->title . '[Id:' . $edit->nid . ']' : NULL,
   );
   $form['type'] = array(
     '#type' => 'select',
     '#title' => t('Type of an employee'),
     '#options' => azur_employee_type(),
-    '#default_value' => isset($edit) ? $edit -> type : '',
+    '#default_value' => isset($edit) ? $edit->type : '',
   );
   $form['sdate'] = array(
     '#type' => 'date_popup',
     '#date_label_position' => 'within',
     '#title' => t('Start date'),
-    '#default_value' => isset($edit) && !empty($edit -> sdate) ? date('Y-m-d', $edit -> sdate) : "",
+    '#default_value' => isset($edit) && !empty($edit->sdate) ? date('Y-m-d', $edit->sdate) : "",
     '#date_format' => variable_get('date_format_date_only', 'd/m/Y'),
     '#required' => TRUE,
   );
   $form['qualification'] = array(
     '#type' => 'textfield',
     '#title' => t('Qualification'),
-    '#default_value' => isset($edit) ? $edit -> qualification : "",
+    '#default_value' => isset($edit) ? $edit->qualification : "",
   );
   $form['submit'] = array(
     '#type' => 'submit',
@@ -194,34 +194,36 @@ function azur_emp_form_submit($form, &$form_state) {
   $qua = $form_state['values']['qualification'];
   $gid = autocomplete_get_id_func($form_state['values']['departments']);
   $eid = isset($form_state['values']['eid']) ? $form_state['values']['eid'] : 0;
-    $uid = isset($form_state['values']['uid'])? $form_state['values']['uid']:0;
-  if ($eid != 0 && $uid == 0) {
+  $uid = isset($form_state['values']['uid']) ? $form_state['values']['uid'] : 0;
+  global $user;
+  if ($eid != 0 && (in_array('Intranet Admin',$user -> roles) || (in_array('Admininstrator',$user -> roles))) ) {
     $aid = $form_state['values']['aid'];
-      $user = employee_return_user_details($eid);
-    $del_user_from_group = db_delete('og_users_roles') -> condition('uid', $user -> uid, '=');
-    $del_user_from_group -> condition('gid', $gid, '=');
-    $del_user_from_group -> condition('group_type', 'node', 'LIKE') -> execute();
-    db_delete('og_membership') -> condition('gid', $gid, '=') -> condition('etid', $user -> uid, '=') -> condition('entity_type', 'user', 'LIKE') -> condition('group_type', 'node', 'LIKE') -> execute();
-    $updated = db_update('employee') -> fields(array(
-      'firstname' => $fname,
-      'lastname' => $lname,
-      'type' => $type,
-      'payment' => $form_state['values']['payment'],
-      'mgr_id' => autocomplete_get_id_func($form_state['values']['mgr_id']),
-      'sdate' => ($sdate),
-      'qualification' => $qua,
-    )) -> condition('eid', $eid, '=') -> execute();
+    $user = employee_return_user_details($eid);
+    $del_user_from_group = db_delete('og_users_roles')->condition('uid', $user->uid, '=');
+    $del_user_from_group->condition('gid', $gid, '=');
+    $del_user_from_group->condition('group_type', 'node', 'LIKE')->execute();
+    db_delete('og_membership')->condition('gid', $gid, '=')->condition('etid', $user->uid, '=')->condition('entity_type', 'user', 'LIKE')->condition('group_type', 'node', 'LIKE')->execute();
+    $updated = db_update('employee')->fields(array(
+          'firstname' => $fname,
+          'lastname' => $lname,
+          'type' => $type,
+          'payment' => $form_state['values']['payment'],
+          'mgr_id' => autocomplete_get_id_func($form_state['values']['mgr_id']),
+          'sdate' => ($sdate),
+          'qualification' => $qua,
+        ))->condition('eid', $eid, '=')->execute();
     $og = new OgMembership;
-    $og -> type = 'og_membership_type_default';
-    $og -> etid = $user -> uid;
-    $og -> entity_type = 'user';
-    $og -> gid = $gid;
-    $og -> group_type = 'node';
-    $og -> state = 1;
-    $og -> created = time();
-    $og -> field_name = 'og_user_node';
-    $og -> language = 'en';
-    $og -> save();
+    $og->type = 'og_membership_type_default';
+    $og->etid = $user->uid;
+    $og->entity_type = 'user';
+    $og->gid = $gid;
+    $og->group_type = 'node';
+    $og->state = 1;
+    $og->created = time();
+    $og->field_name = 'og_user_node';
+    $og->language = 'en';
+    $og->save();
+     drupal_goto('employee/address/' . $eid . '/'.$aid);
   }
   else {
     $values = array(
@@ -232,20 +234,20 @@ function azur_emp_form_submit($form, &$form_state) {
       'qualification' => $qua,
       'uid' => $uid,
     );
-    $eid = db_insert('employee') -> fields($values) -> execute();
+    $eid = db_insert('employee')->fields($values)->execute();
     $og = new OgMembership;
-    $og -> type = 'og_membership_type_default';
-    $og -> etid = $eid;
-    $og -> entity_type = 'user';
-    $og -> gid = $gid;
-    $og -> group_type = 'node';
-    $og -> state = 1;
-    $og -> created = time();
-    $og -> field_name = 'og_user_node';
-    $og -> language = 'en';
-    $og -> save();
+    $og->type = 'og_membership_type_default';
+    $og->etid = $eid;
+    $og->entity_type = 'user';
+    $og->gid = $gid;
+    $og->group_type = 'node';
+    $og->state = 1;
+    $og->created = time();
+    $og->field_name = 'og_user_node';
+    $og->language = 'en';
+    $og->save();
+    drupal_goto('employee/address/' . $eid . '/0');
   }
-  drupal_goto('employee/address/' . $eid . '/0');
 }
 
 /**
@@ -254,9 +256,9 @@ function azur_emp_form_submit($form, &$form_state) {
 function azur_emp_address_form($form, &$form_state, $eid = 0, $aid = 0) {
   $edit = NULL;
   if ($aid != 0) {
-    $query = db_select('address', 'addr') -> fields('addr');
-    $query -> condition('eid', $eid);
-    $edit = $query -> execute() -> fetchObject();
+    $query = db_select('address', 'addr')->fields('addr');
+    $query->condition('eid', $eid, '=');
+    $edit = $query->execute()->fetchObject();
     $form['aid'] = array(
       '#type' => 'hidden',
       '#value' => $aid,
@@ -274,7 +276,7 @@ function azur_emp_address_form($form, &$form_state, $eid = 0, $aid = 0) {
 
   $form['address']['phone'] = array(
     '#type' => 'textfield',
-    '#default_value' => isset($edit) && isset($edit -> phone) ? $edit -> phone : '',
+    '#default_value' => isset($edit) && isset($edit->phone) ? $edit->phone : '',
     '#title' => t('Mobile'),
     '#required' => TRUE,
     '#maxlength' => '16',
@@ -285,7 +287,7 @@ function azur_emp_address_form($form, &$form_state, $eid = 0, $aid = 0) {
 
   $form['address']['resphone'] = array(
     '#type' => 'textfield',
-    '#default_value' => isset($edit) && isset($edit -> resphone) ? $edit -> resphone : '',
+    '#default_value' => isset($edit) && isset($edit->resphone) ? $edit->resphone : '',
     '#title' => t('Residence No.'),
     '#maxlength' => '16',
     '#size' => 16,
@@ -297,7 +299,7 @@ function azur_emp_address_form($form, &$form_state, $eid = 0, $aid = 0) {
     '#type' => 'textfield',
     '#title' => t('Pincode'),
     '#required' => TRUE,
-    '#default_value' => isset($edit) && isset($edit -> pincode) ? $edit -> pincode : '',
+    '#default_value' => isset($edit) && isset($edit->pincode) ? $edit->pincode : '',
     '#element_validate' => array('azur_emp_element_validate_numeric'),
     '#maxlength' => '10',
     '#size' => 16,
@@ -312,7 +314,7 @@ function azur_emp_address_form($form, &$form_state, $eid = 0, $aid = 0) {
     '#type' => 'textarea',
     '#title' => t('Address'),
     '#required' => TRUE,
-    '#default_value' => isset($edit) && isset($edit -> emp_address) ? $edit -> emp_address : '',
+    '#default_value' => isset($edit) && isset($edit->emp_address) ? $edit->emp_address : '',
     '#attributes' => array('class' => array('auto-width')),
   );
   $country_options = azur_get_taxonomy_terms('country_hierarchy', 0, 1);
@@ -381,11 +383,11 @@ function azur_get_taxonomy_terms($var, $parent, $depth, $get_vid = 0) {
   $terms = array();
   $vocabs = taxonomy_vocabulary_get_names();
   if ($get_vid) {
-    return $vocabs[$var] -> vid;
+    return $vocabs[$var]->vid;
   }
-  $tree = taxonomy_get_tree($vocabs[$var] -> vid, $parent, $depth);
+  $tree = taxonomy_get_tree($vocabs[$var]->vid, $parent, $depth);
   foreach ($tree as $value) {
-    $terms[$value -> tid] = $value -> name;
+    $terms[$value->tid] = $value->name;
   }
   return $terms;
 }
@@ -462,17 +464,18 @@ function azur_emp_address_form_submit($form, &$form_state) {
   $resphone = $form_state['values']['resphone'];
   $country = $form_state['values']['country'];
   $aid = isset($form_state['values']['aid']) ? $form_state['values']['aid'] : 0;
+  dpm($form_state);
   if ($aid != 0) {
-    $updated = db_update('address') -> fields(array(
-      'emp_address' => $emp_add,
-      'pincode' => $pincode,
-      'city' => $city,
-      'phone' => $phone,
-      'resphone' => $resphone,
-      'country' => $country,
-      'state' => $state,
-      'eid' => $eid,
-    )) -> condition('aid', $aid, '=') -> execute();
+    $updated = db_update('address')->fields(array(
+          'emp_address' => $emp_add,
+          'pincode' => $pincode,
+          'city' => $city,
+          'phone' => $phone,
+          'resphone' => $resphone,
+          'country' => $country,
+          'state' => $state,
+          'eid' => $eid,
+        ))->condition('aid', $aid, '=')->execute();
     drupal_goto("home");
   }
   else {
@@ -486,7 +489,8 @@ function azur_emp_address_form_submit($form, &$form_state) {
       'state' => $state,
       'eid' => $eid,
     );
-    $eid = db_insert('address') -> fields($values) -> execute();
+    dpm($values);
+    $aid = db_insert('address')->fields($values)->execute();
     drupal_goto("home");
   }
 }
@@ -507,17 +511,17 @@ function azur_emp_views_api() {
 function azur_user_return_employee() {
   global $user;
   $query = db_select('employee', 'emp');
-  $query -> fields('emp', array(
+  $query->fields('emp', array(
     'eid',
     'firstname',
     'lastname'
   ));
-  $query -> innerJoin('address','addr','addr.eid = emp.eid');
-  $query -> fields('addr',array('country'));
-  $query -> condition('uid', $user -> uid, '=');
-  $result = $query -> execute() -> fetchObject();
-  $result -> uid = $user -> uid;
-  $result -> timezone = $user -> timezone;
+  $query->leftJoin('address', 'addr', 'addr.eid = emp.eid');
+  $query->fields('addr', array('country'));
+  $query->condition('uid', $user->uid, '=');
+  $result = $query->execute()->fetchObject();
+  $result->uid = $user->uid;
+  $result->timezone = $user->timezone;
   return $result;
 }
 
@@ -526,14 +530,14 @@ function azur_user_return_employee() {
  */
 function groups_generate_autocomplete($string = '') {
   $matches = array();
-  $query = db_select('node', 'n') -> fields('n', array(
-    'nid',
-    'title'
-  )) -> condition('n.title', '%' . db_like($string) . '%', 'LIKE');
-  $query -> condition('n.type', 'departments', 'LIKE');
-  $res = $query -> execute();
+  $query = db_select('node', 'n')->fields('n', array(
+        'nid',
+        'title'
+      ))->condition('n.title', '%' . db_like($string) . '%', 'LIKE');
+  $query->condition('n.type', 'departments', 'LIKE');
+  $res = $query->execute();
   foreach ($res as $row) {
-    $matches[$row -> title . " [Id:$row->nid]"] = check_plain($row -> title);
+    $matches[$row->title . " [Id:$row->nid]"] = check_plain($row->title);
   }
   return drupal_json_output($matches);
 }
@@ -543,51 +547,53 @@ function groups_generate_autocomplete($string = '') {
  */
 function azur_employee_name($eid) {
   $query = db_select('employee', 'emp');
-  $query -> fields('emp', array(
+  $query->fields('emp', array(
     'firstname',
     'lastname'
   ));
-  $query -> condition('eid', $eid, '=');
-  $res = $query -> execute() -> fetchObject();
-  return $res -> firstname . ' ' . $res -> lastname;
+  $query->condition('eid', $eid, '=');
+  $res = $query->execute()->fetchObject();
+  return $res->firstname . ' ' . $res->lastname;
 }
 
 function azur_employee_get_manager_id($eid) {
   $squery = db_select('employee', 'emp');
-  $squery -> fields('emp', array('mgr_id'));
-  $mgr_id = $squery -> condition('eid', $eid, '=') -> execute() -> fetchField();
+  $squery->fields('emp', array('mgr_id'));
+  $mgr_id = $squery->condition('eid', $eid, '=')->execute()->fetchField();
   return $mgr_id;
 }
-function employee_return_user_details($eid){
-	$squery = db_select('employee','e');
-	$squery -> innerJoin('users','u','u.uid = e.uid');
-	$squery ->fields('u');
-	$squery ->condition('eid',$eid,'=');
-	$user_details = $squery -> execute() -> fetchObject();
-	return $user_details;
+
+function employee_return_user_details($eid) {
+  $squery = db_select('employee', 'e');
+  $squery->innerJoin('users', 'u', 'u.uid = e.uid');
+  $squery->fields('u');
+  $squery->condition('eid', $eid, '=');
+  $user_details = $squery->execute()->fetchObject();
+  return $user_details;
 }
-function azur_intranet_admin_assign_form($form,&$form_state){
-  $squery = db_select('employee','emp');
-  $squery ->innerJoin('users','u','u.uid = emp.uid');
-  $squery -> innerJoin('users_roles','urole','urole.uid = u.uid');
-  $squery ->innerJoin('role','role','role.rid = urole.rid');
-  $squery -> fields('emp',array('eid'));
-  $squery ->addExpression("CONCAT_WS(',',emp.firstname,emp.lastname)",'name');
-  $squery -> condition('role.name','Intranet Admin','LIKE');
-  $admins = $squery ->execute() ->fetchAllKeyed();
+
+function azur_intranet_admin_assign_form($form, &$form_state) {
+  $squery = db_select('employee', 'emp');
+  $squery->innerJoin('users', 'u', 'u.uid = emp.uid');
+  $squery->innerJoin('users_roles', 'urole', 'urole.uid = u.uid');
+  $squery->innerJoin('role', 'role', 'role.rid = urole.rid');
+  $squery->fields('emp', array('eid'));
+  $squery->addExpression("CONCAT_WS(',',emp.firstname,emp.lastname)", 'name');
+  $squery->condition('role.name', 'Intranet Admin', 'LIKE');
+  $admins = $squery->execute()->fetchAllKeyed();
   $country_options = azur_get_taxonomy_terms('country_hierarchy', 0, 1);
   $form_state['storage']['countries'] = $country_options;
-  for($i=0; $i < count($country_options); $i++) {
- $form['admin_'. $i] = array(
-   '#type' => 'select',
-   '#title'=> t('<b> Admin</b>'),
-   '#options' => $admins,
- );
- $form['country_'. $i] = array(
-   '#type' => 'select',
-   '#title'=> t('<b> Country </b>'),
-   '#options' => $country_options,
- );
+  for ($i = 0; $i < count($country_options); $i++) {
+    $form['admin_' . $i] = array(
+      '#type' => 'select',
+      '#title' => t('<b> Admin</b>'),
+      '#options' => $admins,
+    );
+    $form['country_' . $i] = array(
+      '#type' => 'select',
+      '#title' => t('<b> Country </b>'),
+      '#options' => $country_options,
+    );
   }
   $form['submit'] = array(
     '#type' => 'submit',
@@ -595,18 +601,19 @@ function azur_intranet_admin_assign_form($form,&$form_state){
   );
   return $form;
 }
+
 /**
  * Submit function 
  */
-function azur_intranet_admin_assign_form_submit ($form, &$form_state){
+function azur_intranet_admin_assign_form_submit($form, &$form_state) {
   $country_options = $form_state['storage']['countries'];
- for($i=0; $i < count($country_options); $i++) { 
-  $bulk = array(
-   'name' => $form_state['values']['admin_'.$i],
-    'ctry' => $form_state['values']['country_'.$i]
-  );
-  $admins[$form_state['values']['country_'.$i]] = $form_state['values']['admin_'.$i];
- }
- variable_set('intra_admin', $admins);
+  for ($i = 0; $i < count($country_options); $i++) {
+    $bulk = array(
+      'name' => $form_state['values']['admin_' . $i],
+      'ctry' => $form_state['values']['country_' . $i]
+    );
+    $admins[$form_state['values']['country_' . $i]] = $form_state['values']['admin_' . $i];
+  }
+  variable_set('intra_admin', $admins);
   drupal_set_message(t('Data saved successfully'));
 }

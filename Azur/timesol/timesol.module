@@ -116,18 +116,21 @@ function timesol_return_user_status($eid) {
  */
 function timesol_clockin_form($form, &$form_state) {
   $employee = azur_user_return_employee();
+  $squery = db_select('empclkin', 'clk');
+  $squery->fields('clk', array(
+    'eid',
+    'clkout'
+  ));
+  $squery ->orderBy('cid','DESC');
+  $squery->condition('eid', $employee->eid, '=');
+  $result = $squery->execute()->fetchObject();
   $form['eid'] = array(
     '#type' => 'hidden',
     '#value' => $employee->eid,
   );
-  $form['heading'] = array(
+  $form['details'] = array(
     '#type' => 'item',
-    '#markup' => '<div class="block_emp_name"><h4>Welcome back ' . $employee->firstname . '!</h4></div>',
-  );
-  $form['lunch_check'] = array(
-    '#type' => 'checkbox',
-    '#title' => t('Lunch'),
-    '#value' => array('lunch'),
+    '#markup' => '<div class ="block_emp_clkin"><h4>Last Clock Out ' . date('h:i a', $result->clkout) . ' ' . $employee->timezone . '</h4></div>'
   );
   $form['submit'] = array(
     '#type' => 'submit',
@@ -140,6 +143,7 @@ function timesol_clockin_form($form, &$form_state) {
  * Implements hook_form_submit. Submit function for the Clock in form
  */
 function timesol_clockin_form_submit($form, &$form_state) {
+  
   $values = array(
     'eid' => $form_state['values']['eid'],
     'clkin' => time(),
@@ -174,7 +178,6 @@ function timesol_clockout_form($form, &$form_state) {
   $form['lunch_check'] = array(
     '#type' => 'checkbox',
     '#title' => t('lunch'),
-    '#options' => array('lunch'),
   );
   $form['submit'] = array(
     '#type' => 'submit',
@@ -557,7 +560,12 @@ function timesheet_view_generate($eid = 0, $month = 0, $csv = 0) {
   // 1. get the eid and the mont for which the data is required
   global $user;
   $rows = array();
+  $links = '';
   $output = '';
+  $links .= '<div class="timesheet-footer"><div class="prev-mont">' . l('Previous month', 'timesheet/' . $eid . '/' . ($month - 1), array('attributes' => array('id' => 'edit-prev')));
+  $links .= '</div><div class="next-mont">' . l('Next month', 'timesheet/' . $eid . '/' . ($month + 1), array('attributes' => array('id' => 'edit-next'))) . '</div>';
+  $links .='<div style="text-align:center;position:relative;top:-50px;">' . l('Download', 'timesheet/download') . '</div></div>';
+  $output = $output . $links;
   if ($month == 0) {
     $month = date('n', time());
   }
@@ -590,27 +598,33 @@ function timesheet_view_generate($eid = 0, $month = 0, $csv = 0) {
   if($csv == 1){
     return $rows;
   }
-  $header = array('Date', 'In', 'Out', 'Hours');
+  $output .= '<table class="table striped bordered">';
+  $output .= '<thead><th>Date</th><th>In</th><th>Out</th><th>Time</th></thead>';
   foreach ($rows as $values) {
+   $overtime = '';
     $total = 0;
     foreach ($values as $day => $val) {
       $total += $val[4];
       unset($values[$day][4]);
+      $output .= '<tr><td>'.$val[0].'</td><td>'.$val[1].'</td><td>'.$val[2].'</td><td>'.$val[3].'</td></tr>';
     }
-    $var = array('header' => $header, 'rows' => $values);
-    $output .= theme('table', $var);
     $hours = round($total / 3600);
     $min = round(($total - ($hours * 3600)) / 60);
-    $output .= '<table class="table striped bordered"><tr><td>Total:' . $hours . 'hrs-' . $min . 'min</td></tr></table>';
+    if($hours >= 40){
+      $overtime = $hours - 40;
+      $overtime .= $hours.' hrs'. $min .' min';
+    }
+    else{
+      $overtime = 'No over time for this week';
+    }
+    $output .= '<tr><td colspan="2">Total: ' . $hours . 'hrs-' . $min . 'min</td><td colspan="2">'.$overtime.'</td></tr>';
   }
+  $output .= '</table>';
   //5. Provide links for next month, previous mont and for download.
   if ($output == '') {
     $output = '<div class="empty-timesheet">No Clockin or Clockout details to display</div>';
   }
-  $links .= '<div class="timesheet-footer"><div class="prev-mont">' . l('Previous month', 'timesheet/' . $eid . '/' . ($month - 1), array('attributes' => array('id' => 'edit-prev')));
-  $links .= '</div><div class="next-mont">' . l('Next month', 'timesheet/' . $eid . '/' . ($month + 1), array('attributes' => array('id' => 'edit-next'))) . '</div>';
-  $links .='<div style="text-align:center">' . l('Download', 'timesheet/download') . '</div></div>';
-  $output = $output . $links;
+  
   return $output;
 }
 /**
