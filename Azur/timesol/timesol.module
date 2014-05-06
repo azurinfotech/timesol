@@ -252,21 +252,24 @@ function timesol_clockout_details_form($form, &$form_state, $eid) {
       '#title' => t('Title'),
       '#description' => t('Enter the project name'),
       '#autocomplete_path' => 'timesol/project',
+      '#attributes' => array('placeholder' => t('Type the first letter of the Project for predictive input')),
       '#states' => array('visible' => array(':input[name="new_project_' . $i . '"]' => array('checked' => FALSE)))
     );
     $form['multi_projects']['project_create_' . $i] = array(
       '#type' => 'textfield',
       '#title' => t('Project title'),
       '#description' => t('Enter the new project title'),
+      '#attributes' => array('placeholder' => array(t('Enter the Project name that you have been working on'))),
       '#states' => array('visible' => array(':input[name="new_project_' . $i . '"]' => array('checked' => TRUE)))
     );
     $form['multi_projects']['project_time_' . $i] = array(
       '#type' => 'date_popup',
       '#date_label_position' => 'within',
-      '#title' => t('Project time'),
+      '#title' => t('Project hours'),
       '#description' => t('Enter the number of hours that you worked on this project'),
       '#default_value' => 0,
       '#date_format' => variable_get('date_format_date_only', 'H:i'),
+        '#required' => TRUE,
     );
   }
   $form['single_project'] = array(
@@ -276,30 +279,38 @@ function timesol_clockout_details_form($form, &$form_state, $eid) {
   );
   $form['single_project']['project_details'] = array(
     '#type' => 'textfield',
-    '#title' => t('Project Title'),
+    '#title' => t('Existing Projects'),
     '#description' => t('Enter your project title'),
-    '#autocomplete_path' => 'timesol/project'
+      '#prefix' => '<div id="existing_proj">',
+      '#suffix' => '</div>',
+    '#autocomplete_path' => 'timesol/project',
+      '#states' => array('visible' => array(':input[name="new_project"]' => array('checked' => FALSE))),
+      '#attributes' => array('placeholder' => array(t('Please select one of the existing projects (Predictive text field)')))
   );
   if ($flag) {
     $form['single_project']['project_time'] = array(
       '#type' => 'date_popup',
       '#date_label_position' => 'within',
-      '#title' => t('Project time'),
+      '#title' => t('Hours'),
       '#description' => t('Enter the number of hours that you worked on this project'),
       '#default_value' => '',
       '#date_format' => variable_get('date_format_date_only', 'H:i'),
+        '#weight' => 20,
+        '#required' => TRUE,
     );
   }
   $form['single_project']['new_project'] = array(
     '#type' => 'checkbox',
     '#title' => t('New project'),
+    '#weight' => -20,
     '#description' => t('Check this box if it is new project that you want to create'),
   );
   $form['single_project']['project_create'] = array(
     '#type' => 'textfield',
-    '#title' => t('Project title'),
+    '#title' => t('Add new Project'),
     '#description' => t('Enter the new project title'),
     '#states' => array('visible' => array(':input[name="new_project"]' => array('checked' => TRUE))),
+      '#attributes' => array('placeholder' => array(t('Please enter the title of the project that you want to create')))
   );
   $form['submit'] = array(
     '#type' => 'submit',
@@ -557,6 +568,9 @@ function timesol_theme() {
  * @return string
  */
 function timesheet_view_generate($eid = 0, $month = 0, $csv = 0) {
+    if ($month == 0) {
+        $month = date('n', time());
+    }
   // 1. get the eid and the mont for which the data is required
   global $user;
   $rows = array();
@@ -566,9 +580,7 @@ function timesheet_view_generate($eid = 0, $month = 0, $csv = 0) {
   $links .= '</div><div class="next-mont">' . l('Next month', 'timesheet/' . $eid . '/' . ($month + 1), array('attributes' => array('id' => 'edit-next'))) . '</div>';
   $links .='<div style="text-align:center;position:relative;top:-50px;">' . l('Download', 'timesheet/download') . '</div></div>';
   $output = $output . $links;
-  if ($month == 0) {
-    $month = date('n', time());
-  }
+
   //2. fetch the clockin details for the eid and the month
   if ($eid != 0) {
     $query = db_query('SELECT clkin as cin,clkout as cout,flag,clk.eid FROM empclkin as clk WHERE month(from_unixtime(clk.clkin)) = :month AND clk.eid = :eid', array(':month' => $month, ':eid' => $eid));
