@@ -262,14 +262,16 @@ function timesol_clockout_details_form($form, &$form_state, $eid) {
       '#attributes' => array('placeholder' => array(t('Enter the Project name that you have been working on'))),
       '#states' => array('visible' => array(':input[name="new_project_' . $i . '"]' => array('checked' => TRUE)))
     );
+      $x = 0;
     $form['multi_projects']['project_time_' . $i] = array(
       '#type' => 'date_popup',
       '#date_label_position' => 'within',
       '#title' => t('Project hours'),
       '#description' => t('Enter the number of hours that you worked on this project'),
-      '#default_value' => 0,
+     // '#default_value' => 0,
+      '#default_value' => date('H:i',$x),
       '#date_format' => variable_get('date_format_date_only', 'H:i'),
-        '#required' => TRUE,
+        //'#required' => TRUE,
     );
   }
   $form['single_project'] = array(
@@ -288,15 +290,16 @@ function timesol_clockout_details_form($form, &$form_state, $eid) {
       '#attributes' => array('placeholder' => array(t('Please select one of the existing projects (Predictive text field)')))
   );
   if ($flag) {
+      $x =0;
     $form['single_project']['project_time'] = array(
       '#type' => 'date_popup',
       '#date_label_position' => 'within',
       '#title' => t('Hours'),
       '#description' => t('Enter the number of hours that you worked on this project'),
-      '#default_value' => '',
+      '#default_value' => date('H:i',$x),
       '#date_format' => variable_get('date_format_date_only', 'H:i'),
         '#weight' => 20,
-        '#required' => TRUE,
+        //'#required' => TRUE,
     );
   }
   $form['single_project']['new_project'] = array(
@@ -335,11 +338,17 @@ function timesol_clockout_details_form_validate($form, &$form_state) {
     if ($form_state['values']['new_project'] != 1 && !strpos($form_state['values']['project_details'], '[')) {
       form_set_error('project_details', t('Enter a valid project name for clock out.'));
     }
+    if($form_state['values']['project_time'] == 0){
+        form_set_error('project_time',t('Please enter a time value'));
+    }
   }
   else {
     for ($i = 0; $i < $form_state['input']['multi']; $i++) {
       if ($form_state['values']['new_project_' . $i] == 0 && !strpos($form_state['values']['project_name_' . $i], '[')) {
         form_set_error('project_details_' . $i, t('Enter a valid project name for clock out.'));
+      }
+      if($form_state['values']['project_time_'.$i] == 0){
+          form_set_error('project_time_'.$i, t('Please enter the time.'));
       }
     }
   }
@@ -596,7 +605,10 @@ function timesheet_view_generate($eid = 0, $month = 0, $csv = 0) {
       $time = $row->cout - $row->cin;
       $hours = round($time / 3600);
       $min = round(($time - ($hours * 3600)) / 60);
-      $rows[date('W', $row->cin)][date('j', $row->cin)][] = array(date('m/d/y', $row->cin), date('h:i', $row->cin), date('h:i', $row->cout), $hours . ':' . $min . 'hrs', $time);
+      if($min < 10){
+          $min = 0 .$min;
+      }
+      $rows[date('W', $row->cin)][date('j', $row->cin)][] = array(date('m/d/y', $row->cin), date('h:i', $row->cin), date('h:i', $row->cout), $hours . ':' . $min, $time);
 
 //    else {
 //      $time = $rows[date('W', $row->cin)][date('j', $row->cin)][4] + ($row->cout - $row->cin);
@@ -611,7 +623,7 @@ function timesheet_view_generate($eid = 0, $month = 0, $csv = 0) {
     return $rows;
   }
   $output .= '<table class="table striped bordered">';
-  $output .= '<thead><th>Date</th><th>In</th><th>Out</th><th>Time</th></thead>';
+  $output .= '<thead><th>Date</th><th>In</th><th>Out</th><th>Time (hrs:min)</th></thead>';
     // $rows-> is giving [week][days][each clkin and cout per day]
   foreach ($rows as $values) {
    $overtime = '';

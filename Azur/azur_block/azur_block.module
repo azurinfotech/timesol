@@ -447,14 +447,15 @@ function employee_generate_request_data($eid)
     $result = $squery->condition($or)->range(0, 4)->execute();
     foreach ($result as $row) {
         if ($row->eid == $eid && $row->rstatus == 1) {
-            $rows[] = array('description' => t('You created a new ' . l(request_type($row->rtype) . ' request', 'created-requests') . ' on ') . date('d/m/y', $row->sdate));
+            $rows[] = array('description' => t('You created a new ' . l(request_type($row->rtype) . ' requests', 'created-requests') . ' on ') . date('d/m/y', $row->sdate));
         } else if ($row->rstatus == 1) {
-            $rows[] = array('description' => t(azur_employee_name($eid) . ' created a ' . l(request_type($row->rtype) . ' request', 'created-requests') . ' on ') . date('d/m/y', $row->sdate));
-        } else if ($row->rstatus == 2 && $row->eid) {
-            $rows[] = array('description' => t('Your ' . request_type($row->rtype) . ' request has been approved by ' . azur_employee_name($row->adid)));
-        } else if ($row->rstatus == 3 && $row->eid) {
-            $rows[] = array('description' => t('Your ' . request_type($row->rtype) . ' request has been rejected by ' . azur_employee_name($row->adid)));
+            $rows[] = array('description' => t(azur_employee_name($eid) . ' created a ' . l(request_type($row->rtype) . ' requests/assigned', 'created-requests') . ' on ') . date('d/m/y', $row->sdate));
         }
+//        else if ($row->rstatus == 2 && $row->eid) {
+//            $rows[] = array('description' => t('Your ' . request_type($row->rtype) . ' request has been approved by ' . azur_employee_name($row->adid)));
+//        } else if ($row->rstatus == 3 && $row->eid) {
+//            $rows[] = array('description' => t('Your ' . request_type($row->rtype) . ' request has been rejected by ' . azur_employee_name($row->adid)));
+//        }
     }
     return $rows;
 }
