@@ -592,18 +592,18 @@ function timesheet_view_generate($eid = 0, $month = 0, $csv = 0) {
   foreach ($query as $idx => $row) {
     //3.1 Seperate each of the row depending upon the week.
     $x = $row;
-    if (!isset($rows[date('W', $row->cin)][date('j', $row->cin)])) {
+   // if (!isset($rows[date('W', $row->cin)][date('j', $row->cin)]))
       $time = $row->cout - $row->cin;
       $hours = round($time / 3600);
       $min = round(($time - ($hours * 3600)) / 60);
-      $rows[date('W', $row->cin)][date('j', $row->cin)] = array(date('m/d/y', $row->cin), date('h:i', $row->cin), date('h:i', $row->cout), $hours . ':' . $min . 'hrs', $time);
-    }
-    else {
-      $time = $rows[date('W', $row->cin)][date('j', $row->cin)][4] + ($row->cout - $row->cin);
-      $hours = round($time / 3600);
-      $min = round(($time - ($hours * 3600))/ 60);
-      $rows[date('W', $row->cin)][date('j', $row->cin)] = array(date('m/d/y', $row->cin), date('h:i', $row->cin), date('h:i', $row->cout), $hours . ':' . $min . 'hrs', $time);
-    }
+      $rows[date('W', $row->cin)][date('j', $row->cin)][] = array(date('m/d/y', $row->cin), date('h:i', $row->cin), date('h:i', $row->cout), $hours . ':' . $min . 'hrs', $time);
+
+//    else {
+//      $time = $rows[date('W', $row->cin)][date('j', $row->cin)][4] + ($row->cout - $row->cin);
+//      $hours = round($time / 3600);
+//      $min = round(($time - ($hours * 3600))/ 60);
+//      $rows[date('W', $row->cin)][date('j', $row->cin)] = array(date('m/d/y', $row->cin), date('h:i', $row->cin), date('h:i', $row->cout), $hours . ':' . $min . 'hrs', $time);
+//    }
   }
   // 4. Render the table.
   //4.1 Check if it is a download request
@@ -612,13 +612,16 @@ function timesheet_view_generate($eid = 0, $month = 0, $csv = 0) {
   }
   $output .= '<table class="table striped bordered">';
   $output .= '<thead><th>Date</th><th>In</th><th>Out</th><th>Time</th></thead>';
+    // $rows-> is giving [week][days][each clkin and cout per day]
   foreach ($rows as $values) {
    $overtime = '';
     $total = 0;
     foreach ($values as $day => $val) {
-      $total += $val[4];
-      unset($values[$day][4]);
-      $output .= '<tr><td>'.$val[0].'</td><td>'.$val[1].'</td><td>'.$val[2].'</td><td>'.$val[3].'</td></tr>';
+        foreach($val as $cdata){
+      $total += $cdata[4];
+      unset($cdata[4]);
+      $output .= '<tr><td>'.$cdata[0].'</td><td>'.$cdata[1].date('a').'</td><td>'.$cdata[2].date('a').'</td><td>'.$cdata[3].'</td></tr>';
+    }
     }
     $hours = round($total / 3600);
     $min = round(($total - ($hours * 3600)) / 60);

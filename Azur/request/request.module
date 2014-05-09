@@ -293,7 +293,7 @@ function request_form_submit($form, &$form_state) {
         ))->condition('rid', $rid, '=')->execute();
   }
   $mgr = azur_employee_name($form_state['values']['assign_to']);
-  $message = t('Your request has been created and assigned to :mgr on :date', array(':mgr' => $mgr,'date' => date('m/j/Y',time())));
+  $message = t('Your request has been created and assigned to :mgr on :date', array(':mgr' => $mgr,':date' => date('m/d/Y',time())));
   drupal_set_message($message);
   drupal_goto('requests');
 }
