@@ -8,7 +8,9 @@ class views_handler_field_azur_static extends views_handler_field {
       1 => t('Type of Employee'),
       2 => t('Employee Request'),
       3 => t('Employee Id'),
-        4 => t('Type of request')
+      4 => t('Type of request'),
+      5 => t('Employee PayType'),
+      6 => t('Employee OverTime Option')
       );
   }
 
@@ -56,6 +58,13 @@ class views_handler_field_azur_static extends views_handler_field {
 
         case 4:
             $output = request_type($value);
+            break;
+        case 5 :
+            $output = employee_pay_type($value);
+            break;
+
+        case 6:
+            $output = employee_over_time($value);
             break;
     }
     return $output;

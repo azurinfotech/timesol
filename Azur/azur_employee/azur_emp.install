@@ -65,6 +65,16 @@ function _azur_emp_employee(&$schema) {
       'not null' => TRUE,
        'size' => 'medium',
       ),
+      'pay_type' => array(
+          'type' => 'int',
+          'size' => 'medium',
+          'description' => 'Pay Type',
+        );
+      'over_tm' = array(
+            'type' => 'int',
+            'size' => 'medium',
+            'description' => 'Over Time',
+          );
       'enum' => array(
         'type' => 'varchar',
         'description' => 'Employee Number',
@@ -192,4 +202,20 @@ function azur_emp_update_12() {
         'not null' => FALSE,
         'unsigned' => TRUE,
     ));
+}
+function azur_emp_update_14() {
+  $pay = array(
+    'type' => 'int',
+    'size' => 'medium',
+    'description' => 'Pay Type',
+  );
+  db_add_field('employee', 'pay_type', $pay);
+
+  $over_time = array(
+      'type' => 'int',
+      'size' => 'medium',
+      'description' => 'Over Time',
+    );
+    db_add_field('employee', 'over_tm', $over_time);
+
 }

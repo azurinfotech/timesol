@@ -3,6 +3,7 @@
 define('CONST_PERM_CREATE_EMPLOYEE', 'create employee');
 define('CONST_PERM_EDIT_EMPLOYEE', 'edit employee');
 define('CONST_PERM_ADDRESS', 'create address');
+define('CONST_PERM_FINANCE', 'finance');
 
 /**
  * Implements hook_permission().
@@ -11,7 +12,8 @@ function azur_emp_permission() {
   return array(
     CONST_PERM_CREATE_EMPLOYEE => array('title' => t('Create Employee')),
     CONST_PERM_EDIT_EMPLOYEE => array('title' => t('Edit Employee')),
-    CONST_PERM_ADDRESS => array('title' => t('Enter the address details'))
+    CONST_PERM_ADDRESS => array('title' => t('Enter the address details')),
+    CONST_PERM_FINANCE => array('title' => t('Finance'))
   );
 }
 
@@ -145,9 +147,23 @@ function azur_emp_form($form, &$form_state, $eid = 0, $uid = 0) {
     '#autocomplete_path' => 'groups/autocomplete',
     '#default_value' => isset($edit->title) ? $edit->title . '[Id:' . $edit->nid . ']' : NULL,
   );
+    if(in_array('Finance Admin', $user->roles)){
+        $form['pay_type'] = array(
+            '#type' => 'select',
+            '#title' => t('Pay Type'),
+            '#options' => employee_pay_type(),
+            '#default_value' => isset($edit) ? $edit->pay_type : '',
+        );
+        $form['over_tm'] = array(
+            '#type' => 'select',
+            '#title' => t('Over Time'),
+            '#options' => employee_over_time(),
+            '#default_value' => isset($edit) ? $edit->over_tm : '',
+        );
+    }
   $form['type'] = array(
     '#type' => 'select',
-    '#title' => t('Type of an employee'),
+    '#title' => t('Status'),
     '#options' => azur_employee_type(),
     '#default_value' => isset($edit) ? $edit->type : '',
   );
@@ -422,10 +438,11 @@ function azur_employee_type($typ = '') {
   static $types;
   if (!isset($types)) {
     $types = array(
-      1 => t('Permanent Qualified'),
-      2 => t('Permanent Not Qualified'),
+      1 => t('Permanent, Qualified for OverTime'),
+      2 => t('Permanent, Not Qualified for OverTime'),
       3 => t('Contract'),
       4 => t('Part Time'),
+      5=> t('InActive'),
     );
   }
   if (empty($typ)) {
@@ -437,6 +454,48 @@ function azur_employee_type($typ = '') {
   else {
     return t('Invalid Option');
   }
+}
+
+//Pay Type of employee
+function employee_pay_type($typ = '') {
+    static $types;
+    if (!isset($types)) {
+        $types = array(
+            1 => t('Hourly'),
+            2 => t('Salary'),
+
+        );
+    }
+    if (empty($typ)) {
+        return $types;
+    }
+    elseif (isset($types[$typ])) {
+        return $types[$typ];
+    }
+    else {
+        return t('Invalid Option');
+    }
+}
+
+//Employee Over Time Options
+function employee_over_time($typ = '') {
+    static $types;
+    if (!isset($types)) {
+        $types = array(
+            1 => t('Yes'),
+            2 => t('No'),
+
+        );
+    }
+    if (empty($typ)) {
+        return $types;
+    }
+    elseif (isset($types[$typ])) {
+        return $types[$typ];
+    }
+    else {
+        return t('Invalid Option');
+    }
 }
 
 /**

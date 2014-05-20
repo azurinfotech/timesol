@@ -347,6 +347,7 @@ function timesol_clockout_details_form_validate($form, &$form_state) {
       if ($form_state['values']['new_project_' . $i] == 0 && !strpos($form_state['values']['project_name_' . $i], '[')) {
         form_set_error('project_details_' . $i, t('Enter a valid project name for clock out.'));
       }
+
       if($form_state['values']['project_time_'.$i] == 0){
           form_set_error('project_time_'.$i, t('Please enter the time.'));
       }
