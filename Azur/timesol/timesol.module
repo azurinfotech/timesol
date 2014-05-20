@@ -269,7 +269,7 @@ function timesol_clockout_details_form($form, &$form_state, $eid) {
       '#title' => t('Project hours'),
       '#description' => t('Enter the number of hours that you worked on this project'),
      // '#default_value' => 0,
-      '#default_value' => date('H:i',$x),
+      '#value' => date('H:i',$x),
       '#date_format' => variable_get('date_format_date_only', 'H:i'),
         //'#required' => TRUE,
     );
@@ -338,7 +338,7 @@ function timesol_clockout_details_form_validate($form, &$form_state) {
     if ($form_state['values']['new_project'] != 1 && !strpos($form_state['values']['project_details'], '[')) {
       form_set_error('project_details', t('Enter a valid project name for clock out.'));
     }
-    if($form_state['values']['project_time'] == 0){
+    if($form_state['input']['project_time']['time'] == '00:00'){
         form_set_error('project_time',t('Please enter a time value'));
     }
   }
@@ -348,7 +348,9 @@ function timesol_clockout_details_form_validate($form, &$form_state) {
         form_set_error('project_details_' . $i, t('Enter a valid project name for clock out.'));
       }
 
-      if($form_state['values']['project_time_'.$i] == 0){
+
+      if($form_state['input']['project_time_'.$i]['time'] == '00:00'){
+
           form_set_error('project_time_'.$i, t('Please enter the time.'));
       }
     }
